@@ -850,7 +850,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.7';
+const APP_VERSION = '0.8';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1149,6 +1149,24 @@ function gmMergeRubros(remoto) {
     return agregados;
 }
 
+// ── Merge de nombres de cuentas: si acá quedó el nombre de fábrica ("Banco 1", vacío, etc.)
+// y del otro lado ya le pusieron nombre real, lo adopta. Si ya tiene un nombre propio distinto, no lo toca. ──
+function gmMergeCuentas(remoto) {
+    if (!remoto || !remoto.cuentas) return 0;
+    const defaults = { efectivo: 'Efectivo', debito1: 'Banco 1', debito2: 'Banco 2', debito3: '' };
+    let actualizados = 0;
+    Object.keys(defaults).forEach(key => {
+        const local = (DB.cuentas[key] || '').trim();
+        const rem   = (remoto.cuentas[key] || '').trim();
+        const esDefaultLocal = local === '' || local === defaults[key];
+        if (rem && rem !== defaults[key] && esDefaultLocal && local !== rem) {
+            DB.cuentas[key] = remoto.cuentas[key];
+            actualizados++;
+        }
+    });
+    return actualizados;
+}
+
 // ── Sync automático al abrir: fusiona el backup más nuevo de Drive, sin popup ──
 function gmAutoMergeAlAbrir() {
     gmGetToken(token => {
@@ -1166,12 +1184,16 @@ function gmAutoMergeAlAbrir() {
                     const remoto = migrar(data2);
                     const { agregados, actualizados } = gmMergeMovimientos(remoto.movimientos);
                     const rubrosNuevos = gmMergeRubros(remoto);
-                    if (agregados || actualizados || rubrosNuevos) {
+                    const cuentasActualizadas = gmMergeCuentas(remoto);
+                    if (agregados || actualizados || rubrosNuevos || cuentasActualizadas) {
                         saveImmediate();
                         render();
+                        // Si la Vista Rápida móvil está montada, refrescarle los nombres/rubros sin recargar la página
+                        if (document.getElementById('vr-overlay')) { gmVrRenderCuentas(); gmVrRenderRubros(); }
                         const partes = [];
                         if (agregados || actualizados) partes.push(`${agregados} gasto(s) nuevo(s)`);
                         if (rubrosNuevos) partes.push(`${rubrosNuevos} rubro(s) nuevo(s)`);
+                        if (cuentasActualizadas) partes.push(`${cuentasActualizadas} cuenta(s) actualizada(s)`);
                         toast(`🔀 Sync: ${partes.join(', ')} desde Drive`, 'info', 3500);
                     }
                 });
@@ -1189,11 +1211,14 @@ function gmDriveFusionarArchivo(id, token) {
         const remoto = migrar(data);
         const { agregados, actualizados, sinIdentidad } = gmMergeMovimientos(remoto.movimientos);
         const rubrosNuevos = gmMergeRubros(remoto);
+        const cuentasActualizadas = gmMergeCuentas(remoto);
         saveImmediate();
         document.getElementById('modal-gm-drive')?.remove();
         render();
+        if (document.getElementById('vr-overlay')) { gmVrRenderCuentas(); gmVrRenderRubros(); }
         let msg = `✅ Fusión completa: ${agregados} gasto(s) nuevo(s), ${actualizados} actualizado(s)`;
         if (rubrosNuevos) msg += `, ${rubrosNuevos} rubro(s) nuevo(s)`;
+        if (cuentasActualizadas) msg += `, ${cuentasActualizadas} cuenta(s) actualizada(s)`;
         if (sinIdentidad) msg += `, ${sinIdentidad} sin fusionar (backup viejo)`;
         toast(msg, 'success', 4500);
     })
