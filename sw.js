@@ -1,5 +1,5 @@
-// Finanzas Mariela · Service Worker v0.15 · 2026-07-24 19:55 UTC
-const CACHE_NAME = 'finanzas-mariela-v0.15';
+// Finanzas Mariela · Service Worker v0.16 · 2026-07-24 19:58 UTC
+const CACHE_NAME = 'finanzas-mariela-v0.16';
 const ASSETS = ['./index.html', './manifest.json', './xlsx.full.min.js', './instructivo.html', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './favicon-32.png', './apple-touch-icon.png'];
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(caches.open(CACHE_NAME).then(cache => Promise.all(ASSETS.map(asset => fetch(`${asset}?v=${Date.now()}`, { cache: 'no-store' }).then(res => { if (res.ok) cache.put(asset, res); }).catch(() => {}))))); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
