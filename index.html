@@ -125,15 +125,15 @@
             color: var(--text-muted); margin: 2px 2px 6px; flex-shrink: 0;
         }
         .grid-dashboard {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 8px; margin-bottom: 8px; flex-shrink: 0;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 6px; margin-bottom: 6px; flex-shrink: 0;
         }
         .card-bal {
-            background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius);
+            background: var(--bg-card); padding: 6px 8px; border-radius: 6px;
             border: 1px solid var(--border); box-shadow: var(--shadow-sm);
         }
-        .card-bal h4 { margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 800; }
-        .card-bal p  { margin: 6px 0 0; font-size: 19px; font-weight: 800; color: var(--text-main); }
+        .card-bal h4 { margin: 0; font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .3px; font-weight: 800; }
+        .card-bal p  { margin: 3px 0 0; font-size: 12px; font-weight: 800; color: var(--text-main); }
 
         /* ── MENÚ DESPLEGABLE (☰, reemplaza el footer) ── */
         .menu-wrap { position: relative; }
@@ -161,6 +161,57 @@
             .panel { height: auto !important; max-height: none !important; }
             html, body { height: auto; overflow: auto; }
         }
+
+        /* ── PESTAÑAS DE NIVEL PRINCIPAL (Principal / Ahorro / Presupuesto / Configuración) ── */
+        .toplevel-tabs {
+            display: flex; gap: 4px; background: var(--bg-card); padding: 4px; border-radius: 8px;
+            border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .toplevel-tab {
+            flex: 1; text-align: center; padding: 9px 6px; font-size: 12px; font-weight: 800;
+            color: var(--text-muted); background: transparent; border: none; border-radius: 6px; cursor: pointer;
+        }
+        .toplevel-tab.active { background: var(--primary); color: #fff; }
+        .toplevel-tab:not(.active):hover { background: var(--bg-subtle); color: var(--text-main); }
+
+        .toplevel-view { display: none; flex-direction: column; gap: 8px; min-height: 0; flex-grow: 1; overflow-y: auto; }
+        .toplevel-view.active { display: flex; }
+
+        /* ── CARGA HORIZONTAL (estilo Control Financiero, arriba del libro diario) ── */
+        .form-block-cf {
+            background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 12px 14px; margin-bottom: 14px; flex-shrink: 0;
+        }
+        .form-row-cf { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap: 8px; margin-bottom: 8px; }
+        .form-row-cf label { display: block; margin-bottom: 3px; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-label); }
+        .form-row-cf input, .form-row-cf select { width: 100%; }
+
+        /* ── PRESUPUESTO: cabecera de mes + cards por rubro ── */
+        .presu-header {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 14px 18px; flex-shrink: 0;
+        }
+        .presu-mes { font-size: 15px; font-weight: 800; text-transform: capitalize; }
+        .presu-totales { display: flex; gap: 18px; font-size: 12px; flex-wrap: wrap; }
+        .presu-totales b { font-size: 14px; }
+        .presu-global-bar { width: 160px; }
+        .presu-global-bar .budget-bar-bg { height: 6px; margin-top: 4px; }
+
+        .grid-presupuesto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
+        .budget-card {
+            background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 10px;
+            padding: 14px 16px; border-left: 4px solid var(--border);
+        }
+        .budget-card.ok       { border-left-color: var(--ingreso); }
+        .budget-card.alerta   { border-left-color: var(--transferencia); }
+        .budget-card.excedido { border-left-color: var(--gasto); }
+        .bc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .bc-nombre { font-size: 13px; font-weight: 800; }
+        .bc-pct { font-size: 12px; font-weight: 800; }
+        .bc-montos { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+        .bc-foot { font-size: 10.5px; color: var(--text-muted); margin-top: 6px; }
+        .bc-foot.excedido { color: var(--gasto); font-weight: 700; }
 
         .panel {
             background: var(--bg-card); padding: 12px; border-radius: var(--radius);
@@ -542,188 +593,90 @@
     </div>
     <span id="sep-d2" style="display:none;"></span>
 
-    <!-- WORKSPACE -->
-    <div class="workspace-grid">
+    <!-- PESTAÑAS DE NIVEL PRINCIPAL -->
+    <div class="toplevel-tabs">
+        <button class="toplevel-tab active" data-seccion="seccion-principal" onclick="mostrarSeccionPrincipal('seccion-principal', this)">🏠 Principal</button>
+        <button class="toplevel-tab" data-seccion="seccion-ahorro" onclick="mostrarSeccionPrincipal('seccion-ahorro', this)">💰 Ahorro</button>
+        <button class="toplevel-tab" data-seccion="seccion-presupuesto" onclick="mostrarSeccionPrincipal('seccion-presupuesto', this)">📈 Presupuesto</button>
+        <button class="toplevel-tab" data-seccion="seccion-config" onclick="mostrarSeccionPrincipal('seccion-config', this)">⚙️ Configuración</button>
+    </div>
 
-        <!-- PANEL IZQUIERDO: CARGA / RUBROS / CUENTAS -->
-        <div class="panel panel-carga">
-            <div class="tabs-header">
-                <button class="tab-btn active" data-tab="tab-carga">✍️ Carga</button>
-                <button class="tab-btn" data-tab="tab-rubros">📁 Rubros</button>
-                <button class="tab-btn" data-tab="tab-bancos">🏦 Cuentas</button>
-                <button class="tab-btn" data-tab="tab-fijos">📋 Fijos</button>
-                <button class="tab-btn" data-tab="tab-ahorro">💰 Ahorro</button>
-
+    <!-- SECCIÓN PRINCIPAL: carga arriba del libro diario, a todo el ancho -->
+    <div id="seccion-principal" class="toplevel-view active">
+        <div class="panel panel-libro">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <span class="panel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">✍️ Carga de movimiento<span id="ayuda-carga"></span></span>
             </div>
-
-            <!-- TAB CARGA -->
-            <div id="tab-carga" class="tab-content active">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Carga de movimiento</span>
-                    <span id="ayuda-carga"></span>
-                </div>
-                <div class="form-section">
-                    <div class="form-group">
-                        <label for="mov-tipo-flujo">Tipo de operación</label>
+            <div class="form-block-cf">
+                <div class="form-row-cf">
+                    <div>
+                        <label for="mov-tipo-flujo">Tipo</label>
                         <select id="mov-tipo-flujo">
                             <option value="presupuestado">Gasto / Ingreso</option>
-                            <option value="transferencia">🔄 Transferencia entre cuentas</option>
+                            <option value="transferencia">🔄 Transferencia</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div style="grid-column:span 2;">
                         <label for="mov-concepto">Concepto</label>
                         <input type="text" id="mov-concepto" autocomplete="off" placeholder="Ej: Supermercado Día…">
                     </div>
-                    <div style="display:flex; gap:6px;">
-                        <div class="form-group" style="flex:1">
-                            <label for="mov-monto">Monto</label>
-                            <input type="number" id="mov-monto" step="0.01" min="0.01" placeholder="0,00">
-                        </div>
-                        <div class="form-group" style="width:72px;">
-                            <label for="mov-moneda">Moneda</label>
-                            <select id="mov-moneda">
-                                <option value="UYU">$U</option>
-                                <option value="USD">USD</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="flex:1">
-                            <label for="mov-fecha">Fecha</label>
-                            <input type="date" id="mov-fecha">
-                        </div>
+                    <div>
+                        <label for="mov-monto">Monto</label>
+                        <input type="number" id="mov-monto" step="0.01" min="0.01" placeholder="0,00">
                     </div>
+                    <div>
+                        <label for="mov-moneda">Moneda</label>
+                        <select id="mov-moneda">
+                            <option value="UYU">$U</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="mov-fecha">Fecha</label>
+                        <input type="date" id="mov-fecha">
+                    </div>
+                </div>
 
-                    <!-- FLUJO ESTÁNDAR -->
-                    <div id="wrapper-carga-estandar">
-                        <div class="form-group">
+                <!-- FLUJO ESTÁNDAR -->
+                <div id="wrapper-carga-estandar">
+                    <div class="form-row-cf">
+                        <div style="grid-column:span 2;">
                             <label for="mov-rubro">Rubro / categoría</label>
                             <select id="mov-rubro"></select>
-                            <div id="rubros-rapidos" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;"></div>
                         </div>
-                        <div class="form-group">
+                        <div style="grid-column:span 2;">
                             <label for="mov-origen">Cuenta impactada</label>
                             <select id="mov-origen"></select>
                         </div>
                     </div>
+                    <div id="rubros-rapidos" style="display:flex;flex-wrap:wrap;gap:4px;margin:-4px 0 8px;"></div>
+                </div>
 
-                    <!-- TRANSFERENCIA -->
-                    <div id="wrapper-carga-transferencia" class="transf-block">
-                        <div class="form-group">
+                <!-- TRANSFERENCIA -->
+                <div id="wrapper-carga-transferencia" class="transf-block">
+                    <div class="form-row-cf">
+                        <div>
                             <label for="mov-transf-origen" style="color:var(--gasto)">Origen (resta)</label>
                             <select id="mov-transf-origen"></select>
                         </div>
-                        <div class="form-group">
+                        <div>
                             <label for="mov-transf-destino" style="color:var(--ingreso)">Destino (suma)</label>
                             <select id="mov-transf-destino"></select>
                         </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
+                <div class="form-row-cf">
+                    <div style="grid-column:span 3;">
                         <label for="mov-notas">Notas <span style="font-weight:400;color:var(--text-muted);font-size:10px;">(opcional)</span></label>
                         <input type="text" id="mov-notas" list="lista-notas-usadas" autocomplete="off" placeholder="Detalle adicional...">
                     </div>
-                    <button id="btn-guardar-movimiento" class="btn-primary btn-block" style="margin-top:8px;">
-                        ✓ Asentar registro
-                    </button>
-                </div>
-            </div>
-
-            <!-- TAB RUBROS -->
-            <div id="tab-rubros" class="tab-content">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Rubros</span>
-                    <span id="ayuda-rubros"></span>
-                </div>
-                <div class="form-section" style="margin-bottom:8px; background:var(--bg-subtle); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--border);">
-                    <div class="form-group" style="margin-bottom:0">
-                        <label for="rubro-mes-visor">Límites del mes</label>
-                        <select id="rubro-mes-visor"></select>
+                    <div style="grid-column:span 2;display:flex;align-items:flex-end;">
+                        <button id="btn-guardar-movimiento" class="btn-primary btn-block">✓ Asentar registro</button>
                     </div>
                 </div>
-                <div class="form-section" style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border);">
-                    <div class="form-group">
-                        <label for="rubro-nombre">Nombre del rubro</label>
-                        <input type="text" id="rubro-nombre" autocomplete="off" placeholder="Ej: Combustible…">
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <div class="form-group" style="flex:1">
-                            <label for="rubro-tipo">Tipo</label>
-                            <select id="rubro-tipo">
-                                <option value="gasto">Gasto</option>
-                                <option value="ingreso">Ingreso</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="group-rubro-presupuesto" style="flex:1">
-                            <label for="rubro-limite">Límite ($)</label>
-                            <input type="number" id="rubro-limite" step="1" min="0" placeholder="Sin límite">
-                        </div>
-                    </div>
-                    <input type="hidden" id="rubro-edit-id" value="">
-                    <div style="display:flex; gap:4px;">
-                        <button id="btn-guardar-rubro" class="btn-primary btn-block">Guardar categoría</button>
-                        <button id="btn-cancelar-rubro" class="btn-secondary" style="display:none; padding:6px 10px; white-space:nowrap;">✕</button>
-                    </div>
-                </div>
-                <div class="scroll-list" id="lista-rubros"></div>
             </div>
 
-            <!-- TAB CUENTAS/BANCOS -->
-            <div id="tab-bancos" class="tab-content">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Cuentas</span>
-                    <span id="ayuda-cuentas"></span>
-                </div>
-                <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px; line-height:1.5;">
-                    Configurá los nombres de tus cuentas bancarias. Siempre existe la cuenta <strong>Efectivo</strong>.
-                </p>
-                <div class="form-group">
-                    <label for="cfg-debito1">Cuenta 1 (débito)</label>
-                    <input type="text" id="cfg-debito1" placeholder="Ej: Galicia">
-                </div>
-                <div class="form-group">
-                    <label for="cfg-debito2">Cuenta 2 (débito)</label>
-                    <input type="text" id="cfg-debito2" placeholder="Ej: Mercado Pago">
-                </div>
-                <div class="form-group">
-                    <label for="cfg-debito3">Cuenta 3 (opcional)</label>
-                    <input type="text" id="cfg-debito3" placeholder="Ej: Brubank">
-                </div>
-                <button id="btn-guardar-bancos" class="btn-secondary btn-block" style="margin-top:2px;">Actualizar nombres</button>
-
-                <hr style="margin:16px 0;border:none;border-top:1px solid var(--border);">
-                <div class="form-group">
-                    <label for="cfg-drive-client-id" style="display:flex;align-items:center;gap:6px;">
-                        ☁️ Google Drive <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(opcional)</span>
-                    </label>
-                    <input type="text" id="cfg-drive-client-id" placeholder="xxxxxx.apps.googleusercontent.com" style="font-size:11px;">
-                    <p style="font-size:10px;color:var(--text-muted);margin:4px 0 8px;">Pegá tu Client ID de Google Cloud Console para habilitar backup en Drive.</p>
-                    <button class="btn-secondary btn-sm" onclick="gmGuardarClientId()">Guardar Client ID</button>
-                    <span id="drive-cfg-status" style="font-size:11px;margin-left:8px;color:var(--text-muted);"></span>
-                </div>
-            </div>
-
-            <!-- TAB FIJOS -->
-            <div id="tab-fijos" class="tab-content" style="flex-direction:column;gap:8px;overflow-y:auto;padding-bottom:8px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Servicios fijos y cuotas</span>
-                    <span id="ayuda-fijos"></span>
-                </div>
-                <div id="fijos-lista" style="flex:0 0 auto;"></div>
-                <div id="cuotas-lista" style="flex:0 0 auto;"></div>
-            </div>
-
-            <!-- TAB AHORRO -->
-            <div id="tab-ahorro" class="tab-content" style="flex-direction:column;gap:8px;overflow-y:auto;padding-bottom:8px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Ahorro</span>
-                    <span id="ayuda-ahorro"></span>
-                </div>
-                <div id="ahorro-render-root"></div>
-            </div>
-
-        </div>
-
-        <!-- PANEL CENTRAL: LIBRO DIARIO -->
-        <div class="panel panel-libro">
             <div class="libro-hdr">
                 <span class="panel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;display:flex;align-items:center;">📊 Libro diario<span id="ayuda-libro-diario"></span></span>
                 <div style="display:flex; gap:4px; align-items:center;">
@@ -758,21 +711,125 @@
                 <span>Total: <b id="live-total-unico" style="font-size:13px;">$0,00</b></span>
             </div>
 
-            <div class="scroll-list" id="lista-movimientos"></div>
+            <div class="scroll-list" id="lista-movimientos" style="max-height:none;"></div>
         </div>
+    </div>
 
-        <!-- PANEL DERECHO: REPORTE MENSUAL -->
-        <div class="panel panel-presupuesto">
-            <span class="panel-title" style="display:flex;align-items:center;">📈 Presupuesto vs gastos<span id="ayuda-presupuesto"></span></span>
-            <!-- Top 5 rubros -->
-            <div style="padding:10px 12px 0;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">🏆 Top gastos del mes</div>
-            <div id="top5-rubros" style="padding:8px 12px;border-bottom:1px solid var(--border);"></div>
-            <!-- Botón recurrentes -->
-            <div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;">
-                <button onclick="gmVerRecurrentes()" class="btn-secondary btn-block" style="font-size:12px;">🔁 Movimientos recurrentes</button>
-                <span id="ayuda-recurrentes"></span>
+    <!-- SECCIÓN AHORRO (nivel principal) -->
+    <div id="seccion-ahorro" class="toplevel-view">
+        <div class="panel">
+            <span class="panel-title" style="display:flex;align-items:center;">💰 Ahorro<span id="ayuda-ahorro"></span></span>
+            <div id="ahorro-render-root"></div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN PRESUPUESTO (nivel principal, cards por rubro con límite y seguimiento) -->
+    <div id="seccion-presupuesto" class="toplevel-view">
+        <div class="presu-header" id="presu-cabecera"></div>
+        <div class="panel" style="margin-bottom:10px;">
+            <span class="panel-title" style="display:flex;align-items:center;">📈 Presupuesto por rubro — mes actual<span id="ayuda-presupuesto"></span></span>
+            <div class="grid-presupuesto" id="grid-presupuesto-rubros"></div>
+        </div>
+        <div class="panel">
+            <span class="panel-title">📅 Meses anteriores</span>
+            <div id="presu-meses-anteriores"></div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN CONFIGURACIÓN (Rubros / Cuentas / Fijos) -->
+    <div id="seccion-config" class="toplevel-view">
+        <div class="panel">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="tab-rubros">📁 Rubros</button>
+                <button class="tab-btn" data-tab="tab-bancos">🏦 Cuentas</button>
+                <button class="tab-btn" data-tab="tab-fijos">📋 Fijos</button>
             </div>
-            <div class="scroll-list" id="lista-reporte-mensual"></div>
+
+            <!-- TAB RUBROS -->
+            <div id="tab-rubros" class="tab-content active">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Rubros</span>
+                    <span id="ayuda-rubros"></span>
+                </div>
+                <div class="form-section" style="margin-bottom:8px; background:var(--bg-subtle); padding:8px; border-radius:var(--radius-sm); border:1px solid var(--border); max-width:420px;">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label for="rubro-mes-visor">Límites del mes</label>
+                        <select id="rubro-mes-visor"></select>
+                    </div>
+                </div>
+                <div class="form-section" style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border); max-width:420px;">
+                    <div class="form-group">
+                        <label for="rubro-nombre">Nombre del rubro</label>
+                        <input type="text" id="rubro-nombre" autocomplete="off" placeholder="Ej: Combustible…">
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <div class="form-group" style="flex:1">
+                            <label for="rubro-tipo">Tipo</label>
+                            <select id="rubro-tipo">
+                                <option value="gasto">Gasto</option>
+                                <option value="ingreso">Ingreso</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="group-rubro-presupuesto" style="flex:1">
+                            <label for="rubro-limite">Límite ($)</label>
+                            <input type="number" id="rubro-limite" step="1" min="0" placeholder="Sin límite">
+                        </div>
+                    </div>
+                    <input type="hidden" id="rubro-edit-id" value="">
+                    <div style="display:flex; gap:4px;">
+                        <button id="btn-guardar-rubro" class="btn-primary btn-block">Guardar categoría</button>
+                        <button id="btn-cancelar-rubro" class="btn-secondary" style="display:none; padding:6px 10px; white-space:nowrap;">✕</button>
+                    </div>
+                </div>
+                <div class="scroll-list" id="lista-rubros" style="max-width:420px;"></div>
+            </div>
+
+            <!-- TAB CUENTAS/BANCOS -->
+            <div id="tab-bancos" class="tab-content">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Cuentas</span>
+                    <span id="ayuda-cuentas"></span>
+                </div>
+                <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px; line-height:1.5; max-width:420px;">
+                    Configurá los nombres de tus cuentas bancarias. Siempre existe la cuenta <strong>Efectivo</strong>.
+                </p>
+                <div style="max-width:420px;">
+                    <div class="form-group">
+                        <label for="cfg-debito1">Cuenta 1 (débito)</label>
+                        <input type="text" id="cfg-debito1" placeholder="Ej: Galicia">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-debito2">Cuenta 2 (débito)</label>
+                        <input type="text" id="cfg-debito2" placeholder="Ej: Mercado Pago">
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-debito3">Cuenta 3 (opcional)</label>
+                        <input type="text" id="cfg-debito3" placeholder="Ej: Brubank">
+                    </div>
+                    <button id="btn-guardar-bancos" class="btn-secondary btn-block" style="margin-top:2px;">Actualizar nombres</button>
+
+                    <hr style="margin:16px 0;border:none;border-top:1px solid var(--border);">
+                    <div class="form-group">
+                        <label for="cfg-drive-client-id" style="display:flex;align-items:center;gap:6px;">
+                            ☁️ Google Drive <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(opcional)</span>
+                        </label>
+                        <input type="text" id="cfg-drive-client-id" placeholder="xxxxxx.apps.googleusercontent.com" style="font-size:11px;">
+                        <p style="font-size:10px;color:var(--text-muted);margin:4px 0 8px;">Pegá tu Client ID de Google Cloud Console para habilitar backup en Drive.</p>
+                        <button class="btn-secondary btn-sm" onclick="gmGuardarClientId()">Guardar Client ID</button>
+                        <span id="drive-cfg-status" style="font-size:11px;margin-left:8px;color:var(--text-muted);"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB FIJOS -->
+            <div id="tab-fijos" class="tab-content" style="flex-direction:column;gap:8px;overflow-y:auto;padding-bottom:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Servicios fijos y cuotas</span>
+                    <span id="ayuda-fijos"></span>
+                </div>
+                <div id="fijos-lista" style="flex:0 0 auto;"></div>
+                <div id="cuotas-lista" style="flex:0 0 auto;"></div>
+            </div>
         </div>
     </div>
 
@@ -785,7 +842,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.2';
+const APP_VERSION = '0.3';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -829,7 +886,7 @@ function gmInsertarAyudas() {
     const mapa = {
         'ayuda-carga':'carga', 'ayuda-rubros':'rubros', 'ayuda-cuentas':'cuentas',
         'ayuda-fijos':'fijos', 'ayuda-libro-diario':'libro-diario',
-        'ayuda-presupuesto':'presupuesto', 'ayuda-recurrentes':'recurrentes',
+        'ayuda-presupuesto':'presupuesto',
         'ayuda-ahorro':'ahorros'
     };
     Object.keys(mapa).forEach(id => {
@@ -2778,6 +2835,15 @@ function initMenuDropdown() {
     });
 }
 
+function mostrarSeccionPrincipal(id, btn) {
+    document.querySelectorAll('.toplevel-view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.toplevel-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (id === 'seccion-ahorro') gmRenderAhorroTab();
+    if (id === 'seccion-presupuesto') gmRenderPresupuestoTab();
+}
+
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -2785,7 +2851,6 @@ function initTabs() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if (tabId === 'tab-fijos') gmRenderFijos();
-            if (tabId === 'tab-ahorro') gmRenderAhorroTab();
             document.getElementById(tabId).classList.add('active');
             this.classList.add('active');
         });
@@ -3048,119 +3113,6 @@ function actualizarRubrosRapidos() {
             style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);cursor:pointer;color:var(--text-main);"
             title="Seleccionar ${r.nombre}">${r.nombre}</button>`;
     }).join('');
-}
-
-// ── Top 5 rubros por gasto del mes ───────────────────────────
-function renderTop5Rubros() {
-    const el = document.getElementById('top5-rubros');
-    if (!el) return;
-    const mesActual = hoyISO().slice(0,7);
-    const gastosPorRubro = {};
-    DB.movimientos.filter(m => m.tipo === 'gasto' && claveMesDeISO(m.fecha) === mesActual && (m.moneda||'UYU') === vistaMoneda).forEach(m => {
-        gastosPorRubro[m.rubroId] = (gastosPorRubro[m.rubroId]||0) + (parseFloat(m.monto)||0);
-    });
-    const top = Object.entries(gastosPorRubro).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    if (!top.length) { el.innerHTML = '<p style="font-size:11px;color:var(--text-muted);margin:4px 0;">Sin gastos este mes.</p>'; return; }
-    const max = top[0][1];
-    el.innerHTML = top.map(([rubroId, total]) => {
-        const r = DB.rubros.find(rb=>rb.id==rubroId);
-        const pct = Math.round((total/max)*100);
-        return `<div style="margin-bottom:6px;">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
-                <span style="color:var(--text-main);font-weight:600;">${r?r.nombre:'Otros'}</span>
-                <span style="color:var(--gasto);font-weight:700;">${fmtVista(total)}</span>
-            </div>
-            <div style="background:var(--border);border-radius:3px;height:5px;">
-                <div style="background:var(--gasto);border-radius:3px;height:5px;width:${pct}%;"></div>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ── Movimientos recurrentes ───────────────────────────────────
-function gmVerRecurrentes() {
-    document.getElementById('modal-gm-recurrentes')?.remove();
-    const ov = document.createElement('div');
-    ov.id = 'modal-gm-recurrentes';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:3000;display:flex;align-items:center;justify-content:center;';
-    const recurrentes = DB.recurrentes || [];
-    const rubrosOpts = DB.rubros.map(r=>`<option value="${r.id}">${r.nombre}</option>`).join('');
-    const cuentasOpts = Object.entries(DB.cuentas).filter(([,v])=>v).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
-    const filas = recurrentes.map(r => `
-        <tr>
-            <td style="padding:8px 6px;font-size:13px;">${r.concepto}</td>
-            <td style="padding:8px 6px;font-size:13px;text-align:right;color:var(--${r.tipo});">${fmt(r.monto)}</td>
-            <td style="padding:8px 6px;font-size:12px;color:var(--text-muted);">${DB.rubros.find(rb=>rb.id==r.rubroId)?.nombre||'-'}</td>
-            <td style="padding:8px 6px;font-size:12px;color:var(--text-muted);">Día ${r.dia}</td>
-            <td style="padding:8px 6px;text-align:right;">
-                <button onclick="gmAplicarRecurrente(${r.id})" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;margin-right:4px;">+ Aplicar</button>
-                <button onclick="gmBorrarRecurrente(${r.id})" style="background:#dc2626;color:white;border:none;border-radius:4px;padding:3px 6px;font-size:11px;cursor:pointer;">✕</button>
-            </td>
-        </tr>`).join('') || '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--text-muted);">Sin movimientos recurrentes.</td></tr>';
-
-    ov.innerHTML = `<div style="background:white;border-radius:10px;padding:24px;min-width:500px;max-width:90vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <h3 style="margin:0;font-size:16px;display:flex;align-items:center;">🔁 Movimientos recurrentes${btnAyuda('recurrentes')}</h3>
-            <button onclick="document.getElementById('modal-gm-recurrentes').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
-        </div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
-            <thead><tr style="border-bottom:2px solid var(--border);">
-                <th style="padding:6px;text-align:left;font-size:12px;color:var(--text-muted);">Concepto</th>
-                <th style="padding:6px;text-align:right;font-size:12px;color:var(--text-muted);">Monto</th>
-                <th style="padding:6px;text-align:left;font-size:12px;color:var(--text-muted);">Rubro</th>
-                <th style="padding:6px;text-align:left;font-size:12px;color:var(--text-muted);">Día</th>
-                <th></th>
-            </tr></thead>
-            <tbody>${filas}</tbody>
-        </table>
-        <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
-        <p style="font-size:12px;font-weight:600;margin:0 0 8px;">➕ Nuevo recurrente</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div><label style="font-size:11px;color:var(--text-muted);">Concepto</label><input type="text" id="rec-concepto" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;box-sizing:border-box;"></div>
-            <div><label style="font-size:11px;color:var(--text-muted);">Monto</label><input type="number" id="rec-monto" step="0.01" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;box-sizing:border-box;"></div>
-            <div><label style="font-size:11px;color:var(--text-muted);">Tipo</label><select id="rec-tipo" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select></div>
-            <div><label style="font-size:11px;color:var(--text-muted);">Día del mes</label><input type="number" id="rec-dia" min="1" max="31" value="1" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;box-sizing:border-box;"></div>
-            <div><label style="font-size:11px;color:var(--text-muted);">Rubro</label><select id="rec-rubro" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;">${rubrosOpts}</select></div>
-            <div><label style="font-size:11px;color:var(--text-muted);">Cuenta</label><select id="rec-origen" style="width:100%;padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;">${cuentasOpts}</select></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <button onclick="gmGuardarRecurrente()" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;">Guardar recurrente</button>
-            <button onclick="document.getElementById('modal-gm-recurrentes').remove()" style="background:#f1f5f9;color:#334155;border:none;border-radius:4px;padding:7px 16px;font-size:13px;cursor:pointer;">Cerrar</button>
-        </div>
-    </div>`;
-    document.body.appendChild(ov);
-}
-function gmGuardarRecurrente() {
-    const concepto = document.getElementById('rec-concepto').value.trim();
-    const monto    = parseFloat(document.getElementById('rec-monto').value);
-    if(!concepto || isNaN(monto) || monto <= 0) { toast('Completá concepto y monto.','error'); return; }
-    if(!DB.recurrentes) DB.recurrentes = [];
-    DB.recurrentes.push({
-        id: Date.now(), concepto, monto,
-        tipo:    document.getElementById('rec-tipo').value,
-        dia:     parseInt(document.getElementById('rec-dia').value)||1,
-        rubroId: parseInt(document.getElementById('rec-rubro').value),
-        origen:  document.getElementById('rec-origen').value
-    });
-    save();
-    gmVerRecurrentes();
-    toast('Recurrente guardado.','success');
-}
-function gmBorrarRecurrente(id) {
-    DB.recurrentes = (DB.recurrentes||[]).filter(r=>r.id!==id);
-    save(); gmVerRecurrentes();
-}
-function gmAplicarRecurrente(id) {
-    const r = (DB.recurrentes||[]).find(rc=>rc.id===id);
-    if(!r) return;
-    DB.movimientos.push(gmTouch({
-        id: DB.nid++, concepto: r.concepto, monto: r.monto,
-        tipo: r.tipo, rubroId: r.rubroId, origen: r.origen,
-        destino: null, fecha: hoyISO(), notas: 'Recurrente'
-    }));
-    save(); render();
-    toast('✅ Movimiento aplicado: ' + r.concepto, 'success');
-    document.getElementById('modal-gm-recurrentes')?.remove();
 }
 
 async function eliminarMovimiento(id) {
@@ -3709,75 +3661,97 @@ function render() {
         }
     }
 
-    // ── Reporte mensual ──
+    // El detalle de presupuesto por rubro ahora se renderiza on-demand en la pestaña "📈 Presupuesto"
+    // (ver gmRenderPresupuestoTab), para no calcularlo en cada render() del libro diario.
     actualizarRubrosRapidos();
-    renderTop5Rubros();
-    const listaReporte = document.getElementById('lista-reporte-mensual');
-    listaReporte.innerHTML = '';
-    const mesesOrdenados = Object.keys(metricas.mapaMensual).sort().reverse();
+}
+
+// ── Presupuesto por rubro: cards de límite y seguimiento (pestaña de nivel principal) ──
+function gmRenderPresupuestoTab() {
+    const metricas       = calcularMetricas(vistaMoneda);
+    const claveMesActual = obtenerClaveMesActual();
+    const datosMes        = metricas.mapaMensual[claveMesActual];
+    const cabecera  = document.getElementById('presu-cabecera');
+    const grid      = document.getElementById('grid-presupuesto-rubros');
+    const anteriores = document.getElementById('presu-meses-anteriores');
+    if (!grid || !cabecera || !anteriores) return;
+
+    if (!datosMes) {
+        cabecera.innerHTML = '';
+        grid.innerHTML = emptyState('📈', 'Sin movimientos este mes aún.');
+        anteriores.innerHTML = '';
+        return;
+    }
+
+    let totalPresup = 0;
+    let rubrosConLimite = 0;
+    const cardsHtml = DB.rubros.filter(r => r.tipo === 'gasto').map(r => {
+        const lim = vistaMoneda === 'UYU' ? getLimiteHistorico(claveMesActual, r.id) : 0;
+        const gastado = datosMes.desgloseRubros[r.id] || 0;
+        if (lim > 0) {
+            rubrosConLimite++;
+            totalPresup += lim;
+            const pct    = (gastado / lim) * 100;
+            const pctBar = Math.min(pct, 100);
+            const estado = pct >= 100 ? 'excedido' : pct >= 85 ? 'alerta' : 'ok';
+            const color  = estado === 'excedido' ? 'var(--gasto)' : estado === 'alerta' ? 'var(--transferencia)' : 'var(--ingreso)';
+            const restante = lim - gastado;
+            const foot = restante >= 0 ? `Restan ${fmtVista(restante)}` : `Superado por ${fmtVista(Math.abs(restante))}`;
+            return `<div class="budget-card ${estado}">
+                <div class="bc-top"><span class="bc-nombre">${r.nombre}</span><span class="bc-pct" style="color:${color}">${Math.round(pct)}%</span></div>
+                <div class="bc-montos"><span>${fmtVista(gastado)}</span><span>de ${fmtVista(lim)}</span></div>
+                <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pctBar}%;background:${color};"></div></div>
+                <div class="bc-foot ${estado === 'excedido' ? 'excedido' : ''}">${foot}</div>
+            </div>`;
+        } else if (gastado > 0) {
+            return `<div class="budget-card">
+                <div class="bc-top"><span class="bc-nombre">${r.nombre}</span><span class="bc-pct" style="color:var(--text-muted);">—</span></div>
+                <div class="bc-montos"><span>${fmtVista(gastado)}</span><span>sin límite</span></div>
+                <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:0%;"></div></div>
+                <div class="bc-foot">Sin límite configurado</div>
+            </div>`;
+        }
+        return '';
+    }).join('');
+
+    const pctGlobal   = totalPresup > 0 ? Math.min((datosMes.gastos / totalPresup) * 100, 100) : 0;
+    const colorGlobal = pctGlobal >= 100 ? 'var(--gasto)' : pctGlobal >= 85 ? 'var(--transferencia)' : 'var(--primary)';
+
+    cabecera.innerHTML = `
+        <div>
+            <div class="presu-mes">${datosMes.etiqueta}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${rubrosConLimite} rubro${rubrosConLimite===1?'':'s'} con límite configurado</div>
+        </div>
+        <div class="presu-totales">
+            <div>Gastado <b style="color:var(--gasto)">${fmtVista(datosMes.gastos)}</b></div>
+            <div>Presupuestado <b style="color:var(--primary)">${fmtVista(totalPresup)}</b></div>
+            <div>Global <b>${Math.round(pctGlobal)}%</b>
+                <div class="presu-global-bar"><div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pctGlobal}%;background:${colorGlobal};"></div></div></div>
+            </div>
+        </div>`;
+
+    grid.innerHTML = cardsHtml || emptyState('📈', 'Sin rubros con límite ni gasto este mes.');
+
+    // Recap compacto de meses anteriores (sin detalle por rubro, solo totales)
+    anteriores.innerHTML = '';
+    const mesesOrdenados = Object.keys(metricas.mapaMensual).sort().reverse().filter(c => c !== claveMesActual);
     if (mesesOrdenados.length === 0) {
-        listaReporte.innerHTML = emptyState('📈', 'Sin datos de períodos aún.');
+        anteriores.innerHTML = '<p style="font-size:11px;color:var(--text-muted);">Sin meses anteriores con datos.</p>';
     }
     mesesOrdenados.forEach(clave => {
         const datos = metricas.mapaMensual[clave];
-        let htmlBudgets = '';
-        let totalPresup = 0;
-
-        DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
-            const lim = vistaMoneda === 'UYU' ? getLimiteHistorico(clave, r.id) : 0;
-            if (lim > 0) {
-                totalPresup += lim;
-                const gastado = datos.desgloseRubros[r.id] || 0;
-                const pct     = Math.min((gastado / lim) * 100, 100);
-                const color   = pct >= 100 ? 'var(--gasto)' : pct >= 85 ? 'var(--transferencia)' : 'var(--primary)';
-                htmlBudgets += `
-                    <div class="budget-row-report">
-                        <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
-                            <span style="color:var(--text-label)">${r.nombre}</span>
-                            <span style="color:${pct >= 100 ? 'var(--gasto)' : 'var(--text-main)'}">${fmtVista(gastado)} / ${fmtVista(lim)}</span>
-                        </div>
-                        <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pct}%; background:${color};"></div></div>
-                    </div>`;
-            } else {
-                // Carry-forward: sin límite configurado — usar el gasto real del mes anterior como referencia
-                const claveAnt = claveMesAnterior(clave);
-                const gastadoAnt  = metricas.mapaMensual[claveAnt]?.desgloseRubros[r.id] || 0;
-                const gastadoMes  = datos.desgloseRubros[r.id] || 0;
-                if (gastadoAnt > 0 || gastadoMes > 0) {
-                    const refBase = gastadoAnt > 0 ? gastadoAnt : gastadoMes;
-                    const pctRef  = refBase > 0 ? Math.min((gastadoMes / refBase) * 100, 100) : 0;
-                    htmlBudgets += `
-                        <div class="budget-row-report" style="opacity:.75;">
-                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
-                                <span style="color:var(--text-muted)">${r.nombre} <span style="font-weight:400;">(sin límite)</span></span>
-                                <span style="color:var(--text-muted)">${fmtVista(gastadoMes)} <span style="font-weight:400;">· mes ant.: ${fmtVista(gastadoAnt)}</span></span>
-                            </div>
-                            <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pctRef}%; background:var(--text-muted); background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.3) 3px,rgba(255,255,255,.3) 6px);"></div></div>
-                        </div>`;
-                }
-            }
-        });
-
         const neto  = datos.ingresos - datos.gastos;
-        const esMes = clave === claveMesActual;
         const div   = document.createElement('div');
         div.className = 'month-card';
-        if (esMes) div.style.borderColor = 'var(--primary)';
         div.innerHTML = `
-            <div class="month-header">
-                <span>${datos.etiqueta}</span>
-                ${esMes ? '<span style="font-size:9px; font-weight:700; color:var(--primary); background:var(--primary-light); padding:1px 5px; border-radius:3px;">MES ACTUAL</span>' : ''}
-            </div>
-            <div class="month-data"><span style="color:var(--text-muted)">Presupuesto total</span><span style="color:var(--primary); font-weight:700;">${fmtVista(totalPresup)}</span></div>
-            <div class="month-data"><span style="color:var(--text-muted)">Gastos realizados</span><span style="color:var(--gasto); font-weight:700;">−${fmtVista(datos.gastos)}</span></div>
+            <div class="month-header"><span>${datos.etiqueta}</span></div>
+            <div class="month-data"><span style="color:var(--text-muted)">Gastos</span><span style="color:var(--gasto); font-weight:700;">−${fmtVista(datos.gastos)}</span></div>
             <div class="month-data"><span style="color:var(--text-muted)">Ingresos</span><span style="color:var(--ingreso); font-weight:700;">+${fmtVista(datos.ingresos)}</span></div>
             <div style="border-top:1px solid var(--border); margin-top:5px; padding-top:5px; display:flex; justify-content:space-between; font-size:11px; font-weight:800;">
                 <span>Neto (I−G)</span>
                 <span style="color:${neto >= 0 ? 'var(--ingreso)' : 'var(--gasto)'}">${neto >= 0 ? '+' : ''}${fmtVista(neto)}</span>
-            </div>
-            ${htmlBudgets ? `<div style="margin-top:6px; border-top:1px dashed var(--border); padding-top:4px;">${htmlBudgets}</div>` : ''}
-        `;
-        listaReporte.appendChild(div);
+            </div>`;
+        anteriores.appendChild(div);
     });
 }
 
