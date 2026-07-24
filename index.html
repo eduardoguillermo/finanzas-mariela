@@ -850,7 +850,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.8';
+const APP_VERSION = '0.9';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1120,16 +1120,43 @@ function gmMergeMovimientos(remotos) {
     return { agregados, actualizados, sinIdentidad };
 }
 
-// ── Merge de rubros por nombre: agrega los que faltan localmente, nunca toca los que ya existen ──
+// ── Merge de rubros por nombre, con papelera (tombstones) para que el borrado también se propague ──
 // (los ids de rubro son locales a cada dispositivo -DB.nid-, así que el nombre es la única
 // identidad estable entre dos instancias distintas de la app)
 function gmMergeRubros(remoto) {
-    if (!remoto || !Array.isArray(remoto.rubros)) return 0;
+    if (!remoto) return { agregados: 0, eliminados: 0 };
+    if (!Array.isArray(DB.rubrosBorrados)) DB.rubrosBorrados = [];
+    const remotosBorrados = Array.isArray(remoto.rubrosBorrados) ? remoto.rubrosBorrados : [];
+
+    // 1) Unir la papelera remota a la local (así ningún dispositivo "olvida" un borrado ya conocido)
+    const papeleraLocal = new Set(DB.rubrosBorrados.map(b => (b.nombre || '').trim().toLowerCase()));
+    remotosBorrados.forEach(b => {
+        const clave = (b.nombre || '').trim().toLowerCase();
+        if (clave && !papeleraLocal.has(clave)) {
+            DB.rubrosBorrados.push({ nombre: b.nombre, ts: b.ts || Date.now() });
+            papeleraLocal.add(clave);
+        }
+    });
+    if (DB.rubrosBorrados.length > 300) DB.rubrosBorrados = DB.rubrosBorrados.slice(-300);
+
+    // 2) Propagar el borrado: si acá todavía existe un rubro que la papelera (local o recién unida) marca como borrado, sacarlo
+    let eliminados = 0;
+    DB.rubros = DB.rubros.filter(r => {
+        const clave = (r.nombre || '').trim().toLowerCase();
+        if (papeleraLocal.has(clave)) {
+            Object.keys(DB.presupuestosHistoricos).forEach(k => { delete DB.presupuestosHistoricos[k][r.id]; });
+            eliminados++;
+            return false;
+        }
+        return true;
+    });
+
+    // 3) Agregar los rubros remotos que faltan acá, salvo que la papelera diga que fueron borrados a propósito
     const existentes = new Set(DB.rubros.map(r => (r.nombre || '').trim().toLowerCase()));
     let agregados = 0;
-    remoto.rubros.forEach(rr => {
+    (Array.isArray(remoto.rubros) ? remoto.rubros : []).forEach(rr => {
         const clave = (rr.nombre || '').trim().toLowerCase();
-        if (!clave || existentes.has(clave)) return; // ya existe localmente: no se toca
+        if (!clave || existentes.has(clave) || papeleraLocal.has(clave)) return;
         const nuevoId = DB.nid++;
         DB.rubros.push({ id: nuevoId, nombre: rr.nombre, tipo: rr.tipo || 'gasto' });
         existentes.add(clave);
@@ -1146,7 +1173,7 @@ function gmMergeRubros(remoto) {
             });
         }
     });
-    return agregados;
+    return { agregados, eliminados };
 }
 
 // ── Merge de nombres de cuentas: si acá quedó el nombre de fábrica ("Banco 1", vacío, etc.)
@@ -1183,9 +1210,9 @@ function gmAutoMergeAlAbrir() {
                 .then(data2 => {
                     const remoto = migrar(data2);
                     const { agregados, actualizados } = gmMergeMovimientos(remoto.movimientos);
-                    const rubrosNuevos = gmMergeRubros(remoto);
+                    const { agregados: rubrosNuevos, eliminados: rubrosBorrados } = gmMergeRubros(remoto);
                     const cuentasActualizadas = gmMergeCuentas(remoto);
-                    if (agregados || actualizados || rubrosNuevos || cuentasActualizadas) {
+                    if (agregados || actualizados || rubrosNuevos || rubrosBorrados || cuentasActualizadas) {
                         saveImmediate();
                         render();
                         // Si la Vista Rápida móvil está montada, refrescarle los nombres/rubros sin recargar la página
@@ -1193,6 +1220,7 @@ function gmAutoMergeAlAbrir() {
                         const partes = [];
                         if (agregados || actualizados) partes.push(`${agregados} gasto(s) nuevo(s)`);
                         if (rubrosNuevos) partes.push(`${rubrosNuevos} rubro(s) nuevo(s)`);
+                        if (rubrosBorrados) partes.push(`${rubrosBorrados} rubro(s) eliminado(s)`);
                         if (cuentasActualizadas) partes.push(`${cuentasActualizadas} cuenta(s) actualizada(s)`);
                         toast(`🔀 Sync: ${partes.join(', ')} desde Drive`, 'info', 3500);
                     }
@@ -1210,7 +1238,7 @@ function gmDriveFusionarArchivo(id, token) {
     .then(data => {
         const remoto = migrar(data);
         const { agregados, actualizados, sinIdentidad } = gmMergeMovimientos(remoto.movimientos);
-        const rubrosNuevos = gmMergeRubros(remoto);
+        const { agregados: rubrosNuevos, eliminados: rubrosBorrados } = gmMergeRubros(remoto);
         const cuentasActualizadas = gmMergeCuentas(remoto);
         saveImmediate();
         document.getElementById('modal-gm-drive')?.remove();
@@ -1218,6 +1246,7 @@ function gmDriveFusionarArchivo(id, token) {
         if (document.getElementById('vr-overlay')) { gmVrRenderCuentas(); gmVrRenderRubros(); }
         let msg = `✅ Fusión completa: ${agregados} gasto(s) nuevo(s), ${actualizados} actualizado(s)`;
         if (rubrosNuevos) msg += `, ${rubrosNuevos} rubro(s) nuevo(s)`;
+        if (rubrosBorrados) msg += `, ${rubrosBorrados} rubro(s) eliminado(s)`;
         if (cuentasActualizadas) msg += `, ${cuentasActualizadas} cuenta(s) actualizada(s)`;
         if (sinIdentidad) msg += `, ${sinIdentidad} sin fusionar (backup viejo)`;
         toast(msg, 'success', 4500);
@@ -1383,6 +1412,7 @@ let DB = {
         { id: 2, nombre: 'Supermercado', tipo: 'gasto'   },
         { id: 3, nombre: 'Servicios',    tipo: 'gasto'   }
     ],
+    rubrosBorrados: [], // papelera: {nombre, ts} — para que el borrado también se propague al sincronizar
     movimientos: [],
     cuentas: {
         efectivo: 'Efectivo',
@@ -1501,6 +1531,7 @@ function migrar(data) {
     // Garantizar arrays mínimos siempre
     data.rubros       = Array.isArray(data.rubros)       ? data.rubros       : [];
     data.movimientos  = Array.isArray(data.movimientos)  ? data.movimientos  : [];
+    data.rubrosBorrados = Array.isArray(data.rubrosBorrados) ? data.rubrosBorrados : [];
     data.presupuestosHistoricos = data.presupuestosHistoricos || {};
     if (!data.fijos) data.fijos = { servicios: [], cuotas: [], nid: 1 };
     if (!data.fijos.servicios) data.fijos.servicios = [];
@@ -3120,6 +3151,12 @@ function editarRubro(id) {
 async function eliminarRubro(id) {
     const ok = await showConfirm('Eliminar categoría', '¿Eliminar este rubro? Los movimientos asociados quedarán sin categoría.', 'Eliminar');
     if (!ok) return;
+    const rubro = DB.rubros.find(r => r.id === id);
+    if (rubro) {
+        if (!Array.isArray(DB.rubrosBorrados)) DB.rubrosBorrados = [];
+        DB.rubrosBorrados.push({ nombre: rubro.nombre, ts: Date.now() });
+        if (DB.rubrosBorrados.length > 300) DB.rubrosBorrados = DB.rubrosBorrados.slice(-300);
+    }
     DB.rubros = DB.rubros.filter(r => r.id !== id);
     Object.keys(DB.presupuestosHistoricos).forEach(k => { delete DB.presupuestosHistoricos[k][id]; });
     toast('Categoría eliminada.', 'warning');
