@@ -137,6 +137,11 @@
         }
         .card-bal h4 { margin: 0; font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .3px; font-weight: 800; }
         .card-bal p  { margin: 3px 0 0; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .box-estado-financiero {
+            border: 1.5px solid var(--primary); border-radius: 8px;
+            padding: 8px 8px 2px; margin-bottom: 8px;
+        }
+        .box-estado-financiero .dash-label:first-child { margin-top: 0; }
 
         /* ── MENÚ DESPLEGABLE (☰, reemplaza el footer) ── */
         .menu-wrap { position: relative; }
@@ -584,20 +589,22 @@
     </header>
 
     <!-- DASHBOARD (estilo Control Financiero: cajas grandes, no franja compacta) -->
-    <div class="dash-label">🎯 Mes actual</div>
-    <div class="grid-dashboard">
-        <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
-        <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
-        <div class="card-bal"><h4>Presupuestado</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
-        <div class="card-bal"><h4>Restante</h4><p id="view-budget-restante">$0,00</p></div>
-    </div>
-    <div class="dash-label">💰 Tenencias</div>
-    <div class="grid-dashboard">
-        <div class="card-bal"><h4>Neto</h4><p id="view-balance">$0,00</p></div>
-        <div class="card-bal"><h4>💵 Efectivo</h4><p id="view-bal-efectivo">$0,00</p></div>
-        <div class="card-bal" id="grp-debito1"><h4 id="label-hdr-debito1">Banco 1</h4><p id="view-bal-debito1">$0,00</p></div>
-        <div class="card-bal" id="grp-debito2"><h4 id="label-hdr-debito2">Banco 2</h4><p id="view-bal-debito2">$0,00</p></div>
-        <div class="card-bal" id="grp-debito3" style="display:none"><h4 id="label-hdr-debito3">Banco 3</h4><p id="view-bal-debito3">$0,00</p></div>
+    <div class="box-estado-financiero">
+        <div class="dash-label">🎯 Mes actual</div>
+        <div class="grid-dashboard">
+            <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
+            <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
+            <div class="card-bal"><h4>Presupuestado</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
+            <div class="card-bal"><h4>Restante</h4><p id="view-budget-restante">$0,00</p></div>
+        </div>
+        <div class="dash-label">💰 Tenencias</div>
+        <div class="grid-dashboard">
+            <div class="card-bal"><h4>Neto</h4><p id="view-balance">$0,00</p></div>
+            <div class="card-bal"><h4>💵 Efectivo</h4><p id="view-bal-efectivo">$0,00</p></div>
+            <div class="card-bal" id="grp-debito1"><h4 id="label-hdr-debito1">Banco 1</h4><p id="view-bal-debito1">$0,00</p></div>
+            <div class="card-bal" id="grp-debito2"><h4 id="label-hdr-debito2">Banco 2</h4><p id="view-bal-debito2">$0,00</p></div>
+            <div class="card-bal" id="grp-debito3" style="display:none"><h4 id="label-hdr-debito3">Banco 3</h4><p id="view-bal-debito3">$0,00</p></div>
+        </div>
     </div>
     <span id="sep-d2" style="display:none;"></span>
 
@@ -850,7 +857,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.11';
+const APP_VERSION = '0.12';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
