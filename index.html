@@ -856,7 +856,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.14';
+const APP_VERSION = '0.15';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -2773,23 +2773,23 @@ function gmAbrirHistorial() {
             </div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px;align-items:center;">
-            <select id="hist-f-moneda" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:white;font-weight:700;">
+            <select id="hist-f-moneda" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-card);color:var(--text-main);font-weight:700;">
                 <option value="UYU">$U</option>
                 <option value="USD">USD</option>
             </select>
-            <select id="hist-f-tipo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:white;">
+            <select id="hist-f-tipo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-card);color:var(--text-main);">
                 <option value="">Todos los tipos</option>
                 <option value="ingreso">Solo ingresos</option>
                 <option value="gasto">Solo gastos</option>
             </select>
-            <select id="hist-f-rubro" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:white;">
+            <select id="hist-f-rubro" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-card);color:var(--text-main);">
                 <option value="">Todos los rubros</option>
                 ${rubrosOpts}
             </select>
-            <input type="number" id="hist-f-monto-min" placeholder="Monto mínimo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:120px;">
-            <input type="number" id="hist-f-monto-max" placeholder="Monto máximo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:120px;">
-            <input type="text" id="hist-f-texto" placeholder="🔍 Buscar concepto..." oninput="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:180px;">
-            <button onclick="gmLimpiarFiltrosHistorial()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:4px;background:#f1f5f9;cursor:pointer;color:#64748b;">✕ Limpiar</button>
+            <input type="number" id="hist-f-monto-min" placeholder="Monto mínimo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:120px;background:var(--bg-card);color:var(--text-main);">
+            <input type="number" id="hist-f-monto-max" placeholder="Monto máximo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:120px;background:var(--bg-card);color:var(--text-main);">
+            <input type="text" id="hist-f-texto" placeholder="🔍 Buscar concepto..." oninput="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;width:180px;background:var(--bg-card);color:var(--text-main);">
+            <button onclick="gmLimpiarFiltrosHistorial()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:4px;background:var(--bg-card);cursor:pointer;color:var(--text-muted);">✕ Limpiar</button>
         </div>
     </div>
     <div id="historial-contenido" style="flex:1;overflow-y:auto;padding:16px 20px;"></div>`;
