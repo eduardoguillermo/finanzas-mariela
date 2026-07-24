@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinanzasPro Ledger · Manual de Usuario</title>
+<title>Finanzas Mariela · Manual de Usuario</title>
 <style>
   :root {
     --primary: #4f46e5;
@@ -239,37 +239,40 @@
   }
 </style>
 </head>
-<body>
 
 <div class="layout">
 
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <h1>💵 FinanzasPro Ledger</h1>
-    <p>Manual de usuario · v13.88</p>
+    <h1>💵 Finanzas Mariela</h1>
+    <p>Manual de usuario · v0.10</p>
   </div>
 
   <div class="section-label">Introducción</div>
   <a href="#intro">🏠 ¿Qué es esta app?</a>
   <a href="#navegacion">🗂 Navegación</a>
 
-  <div class="section-label">Secciones principales</div>
+  <div class="section-label">Principal</div>
   <a href="#carga">✍️ Carga</a>
-  <a href="#rubros">📁 Rubros</a>
-  <a href="#cuentas">🏦 Cuentas</a>
-  <a href="#fijos">📋 Fijos</a>
   <a href="#libro-diario">📊 Libro diario</a>
-  <a href="#presupuesto">📈 Presupuesto</a>
 
-  <div class="section-label">Módulos adicionales</div>
-  <a href="#recurrentes">🔁 Recurrentes</a>
+  <div class="section-label">Otras pestañas</div>
+  <a href="#ahorros">💰 Ahorro</a>
+  <a href="#presupuesto">📈 Presupuesto</a>
+  <a href="#configuracion">⚙️ Configuración</a>
+  <a href="#rubros">📁 · Rubros</a>
+  <a href="#cuentas">🏦 · Cuentas</a>
+  <a href="#fijos">📋 · Fijos</a>
+
+  <div class="section-label">Menú ☰</div>
+  <a href="#menu">☰ Qué hay en el menú</a>
   <a href="#torta">🥧 Gastos por rubro</a>
-  <a href="#ahorros">💰 Ahorros</a>
   <a href="#historial">📅 Historial mensual</a>
 
   <div class="section-label">Funciones especiales</div>
-  <a href="#backup">💾 Backup y datos</a>
+  <a href="#backup">💾 Backup y sincronización</a>
   <a href="#salir">🚪 Salir</a>
+  <a href="#movil">📱 Uso en el celular</a>
   <a href="#consola">🛠 Comandos consola</a>
 
   <div class="section-label">Historial</div>
@@ -279,12 +282,13 @@
 <main class="content">
 
   <div class="hero">
-    <h1>💵 FinanzasPro Ledger</h1>
+    <h1>💵 Finanzas Mariela</h1>
     <p>Manual completo de usuario — Registro diario de gastos e ingresos</p>
     <div class="hero-badges">
-      <span class="badge badge-green">✓ v13.88</span>
+      <span class="badge badge-green">✓ v0.10</span>
       <span class="badge badge-blue">✓ Sin servidor</span>
       <span class="badge badge-amber">✓ Datos locales</span>
+      <span class="badge badge-purple">✓ Instancia aislada</span>
     </div>
   </div>
 
@@ -293,13 +297,13 @@
     <div class="section-header">
       <span class="section-icon">🏠</span>
       <div>
-        <div class="section-title">¿Qué es FinanzasPro Ledger?</div>
+        <div class="section-title">¿Qué es Finanzas Mariela?</div>
         <div class="section-subtitle">Descripción general de la aplicación</div>
       </div>
     </div>
-    <p>FinanzasPro Ledger es un libro diario de gastos e ingresos: registrás cada movimiento con su rubro, cuenta y fecha, y la app te muestra en tiempo real el presupuesto ejecutado por categoría, tus tenencias por cuenta y un historial mensual completo.</p>
+    <p>Finanzas Mariela es un libro diario de gastos e ingresos: registrás cada movimiento con su rubro, cuenta y fecha, y la app te muestra en tiempo real el presupuesto ejecutado por categoría, tus tenencias por cuenta y un historial mensual completo.</p>
     <p>Es una PWA (se instala como app) que funciona sin conexión y guarda todo en el dispositivo, con opciones de backup en carpeta local y en Google Drive.</p>
-    <div class="tip">💡 A diferencia de Control Financiero (que separa servicios fijos, corrientes y cuotas en módulos propios), acá todo pasa por un único flujo de carga con rubros configurables.</div>
+    <div class="tip">💡 Esta es una instancia nueva y totalmente aislada de FinanzasPro Ledger: rediseñada con la paleta oscura de Control Financiero, con Ahorro y Presupuesto como pestañas propias, Configuración centralizada, y datos/Drive completamente separados (misma lógica, cero mezcla de información entre las dos apps).</div>
   </section>
 
   <!-- NAVEGACION -->
@@ -311,22 +315,27 @@
         <div class="section-subtitle">Cómo está organizada la pantalla</div>
       </div>
     </div>
-    <p>La app se divide en tres columnas:</p>
+    <p>Arriba de todo, el <b>dashboard</b> muestra dos filas de cajitas: <b>Mes actual</b> (Ingresos, Gastos, Presupuestado, Restante) y <b>Bancos y efectivo</b> (Neto, Efectivo y cada cuenta configurada).</p>
+    <p>Debajo, <b>4 pestañas de nivel principal</b> reemplazan al viejo panel izquierdo con tabs:</p>
     <div class="dashboard-grid">
-      <div class="dash-card" style="color:var(--blue);">
-        <h4>Panel izquierdo</h4>
-        <div class="value" style="font-size:13px;">Pestañas: Carga, Rubros, Cuentas, Fijos</div>
-      </div>
       <div class="dash-card" style="color:var(--primary);">
-        <h4>Panel central</h4>
-        <div class="value" style="font-size:13px;">Libro diario con filtros por fecha y texto</div>
+        <h4>🏠 Principal</h4>
+        <div class="value" style="font-size:13px;">Carga de movimiento (arriba) + Libro diario (abajo), a todo el ancho</div>
       </div>
-      <div class="dash-card" style="color:var(--green);">
-        <h4>Panel derecho</h4>
-        <div class="value" style="font-size:13px;">Presupuesto vs gastos, Top 5, Recurrentes</div>
+      <div class="dash-card" style="color:var(--teal);">
+        <h4>💰 Ahorro</h4>
+        <div class="value" style="font-size:13px;">Seguimiento de fondos guardados por subrubro</div>
+      </div>
+      <div class="dash-card" style="color:var(--amber);">
+        <h4>📈 Presupuesto</h4>
+        <div class="value" style="font-size:13px;">Cards de límite y seguimiento por rubro, mes actual + histórico</div>
+      </div>
+      <div class="dash-card" style="color:var(--purple);">
+        <h4>⚙️ Configuración</h4>
+        <div class="value" style="font-size:13px;">Rubros, Cuentas y Fijos, en sub-pestañas</div>
       </div>
     </div>
-    <p>El pie de página (footer) concentra los botones de Ayuda, Carpeta, Exportar/Importar, Drive, Ahorros, Rubros (gráfico), Historial, Local (snapshots) y Salir.</p>
+    <p>Arriba a la derecha, el ícono <b>☰</b> reemplaza al viejo pie de página: ahí están Ayuda, Exportar/Importar, Drive, Snapshots locales, Gastos por rubro, Historial mensual y Salir.</p>
     <div class="info">ℹ️ Todos los botones de ayuda (🟡 ?) que ves junto a los títulos te traen directo a la sección correspondiente de este manual.</div>
     <h2>Selector $U / USD</h2>
     <p>En el header hay un switch <b>$U / USD</b> que cambia la moneda de visualización de Ahorros y otros totales. No convierte montos: cada registro guarda su propia moneda, y el switch simplemente filtra/formatea la vista.</p>
@@ -338,7 +347,7 @@
       <span class="section-icon">✍️</span>
       <div>
         <div class="section-title">Carga</div>
-        <div class="section-subtitle">Registrar un movimiento nuevo</div>
+        <div class="section-subtitle">Registrar un movimiento nuevo — arriba del libro diario, en Principal</div>
       </div>
     </div>
     <div class="steps">
@@ -348,50 +357,8 @@
       <div class="step"><div class="step-num"></div><div class="step-body">Si es Transferencia, elegí cuenta <b>origen</b> (resta) y <b>destino</b> (suma).</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Agregá una <b>nota</b> opcional y tocá <b>✓ Asentar registro</b>.</div></div>
     </div>
-    <div class="tip">💡 Los chips de rubros rápidos muestran tus categorías más usadas para no tener que abrir el select cada vez.</div>
+    <div class="tip">💡 El formulario ahora es horizontal (estilo Control Financiero) y vive pegado arriba del libro diario, no en una columna aparte — cargás y ves el asiento nuevo sin cambiar de pantalla.</div>
     <div class="info">ℹ️ Cada movimiento tiene un campo <b>Moneda</b> ($U o USD). Por defecto toma la moneda activa del switch del header, pero se puede cambiar por registro.</div>
-  </section>
-
-  <!-- RUBROS -->
-  <section class="section" id="rubros">
-    <div class="section-header">
-      <span class="section-icon">📁</span>
-      <div>
-        <div class="section-title">Rubros</div>
-        <div class="section-subtitle">Categorías de gasto e ingreso</div>
-      </div>
-    </div>
-    <h2>Crear o editar un rubro</h2>
-    <p>Definí un <b>nombre</b>, el <b>tipo</b> (gasto o ingreso) y, opcionalmente, un <b>límite mensual</b> en pesos. Los rubros con límite aparecen con barra de progreso en el panel de Presupuesto.</p>
-    <h2>Límites por mes</h2>
-    <p>El selector "Límites del mes" te permite definir un tope distinto para meses puntuales sin tener que cambiar el límite general del rubro.</p>
-  </section>
-
-  <!-- CUENTAS -->
-  <section class="section" id="cuentas">
-    <div class="section-header">
-      <span class="section-icon">🏦</span>
-      <div>
-        <div class="section-title">Cuentas</div>
-        <div class="section-subtitle">Cuentas bancarias, efectivo y Google Drive</div>
-      </div>
-    </div>
-    <p>Siempre existe la cuenta <b>Efectivo</b>. Podés nombrar hasta 3 cuentas de débito adicionales (banco, Mercado Pago, billetera virtual, etc.).</p>
-    <h2>Google Drive (opcional)</h2>
-    <p>Pegá tu <b>Client ID</b> de Google Cloud Console para habilitar el backup en Drive. Sin este dato, los botones de Drive quedan ocultos y solo se usan carpeta local y snapshots.</p>
-    <div class="warning">⚠️ El Client ID es por dispositivo/navegador — si cambiás de PC, hay que configurarlo de nuevo.</div>
-  </section>
-
-  <!-- FIJOS -->
-  <section class="section" id="fijos">
-    <div class="section-header">
-      <span class="section-icon">📋</span>
-      <div>
-        <div class="section-title">Fijos</div>
-        <div class="section-subtitle">Servicios fijos y compras en cuotas</div>
-      </div>
-    </div>
-    <p>Esta pestaña agrupa los <b>servicios fijos</b> (vencimientos recurrentes) y las <b>compras en cuotas</b> en curso, para tenerlos a mano sin mezclarlos con la carga diaria.</p>
   </section>
 
   <!-- LIBRO DIARIO -->
@@ -400,12 +367,30 @@
       <span class="section-icon">📊</span>
       <div>
         <div class="section-title">Libro diario</div>
-        <div class="section-subtitle">Listado de movimientos del panel central</div>
+        <div class="section-subtitle">Listado de movimientos, debajo de la carga en Principal</div>
       </div>
     </div>
     <p>Filtrá por rango de <b>fechas</b> o por texto/rubro con el selector avanzado. El contador inferior muestra la cantidad de asientos y el total filtrado.</p>
+    <p>Al ocupar todo el ancho de la pantalla (ya no comparte columna con nada más), entran más movimientos visibles sin scrollear.</p>
     <h2>Impresión / PDF</h2>
     <p>El botón 🖨️ genera una vista de impresión del libro diario tal como está filtrado en pantalla.</p>
+  </section>
+
+  <!-- AHORROS -->
+  <section class="section" id="ahorros">
+    <div class="section-header">
+      <span class="section-icon">💰</span>
+      <div>
+        <div class="section-title">Ahorro</div>
+        <div class="section-subtitle">Pestaña de nivel principal — seguimiento de fondos guardados por subrubro</div>
+      </div>
+    </div>
+    <p>Registrá <b>ingresos</b> y <b>retiros</b> de ahorro por subrubro (por ejemplo, "Cambio Auto" o "Reservas"). Los totales por moneda se ven arriba de las tarjetas.</p>
+    <div class="tip">💡 Antes era un modal que tapaba toda la pantalla; ahora es una pestaña más, junto a Principal, Presupuesto y Configuración.</div>
+    <h2>Subrubros</h2>
+    <p>El botón ⚙️ Subrubros te permite crear, renombrar o eliminar las categorías de ahorro.</p>
+    <h2>Moneda por subrubro — cómo ahorrar en dólares</h2>
+    <p>Cada subrubro de ahorro tiene su propia moneda (UYU o USD), configurable al crear o editar el subrubro desde ⚙️ Subrubros. Si querés un fondo en dólares, creá (o editá) el subrubro y elegí <b>USD</b> — a partir de ahí todos los movimientos de ingreso/retiro de ese subrubro quedan en esa moneda automáticamente.</p>
   </section>
 
   <!-- PRESUPUESTO -->
@@ -413,23 +398,104 @@
     <div class="section-header">
       <span class="section-icon">📈</span>
       <div>
-        <div class="section-title">Presupuesto vs gastos</div>
-        <div class="section-subtitle">Panel derecho — ejecución del mes</div>
+        <div class="section-title">Presupuesto</div>
+        <div class="section-subtitle">Pestaña de nivel principal — cards de límite y seguimiento por rubro</div>
       </div>
     </div>
-    <p>Muestra el <b>Top 5 de gastos</b> del mes por rubro y, debajo, el detalle de ejecución de cada rubro con límite configurado.</p>
+    <p>Arriba, una cabecera de mes muestra cuántos rubros tienen límite configurado, el total gastado, el presupuestado y el % global de ejecución.</p>
+    <p>Debajo, una <b>card compacta por cada rubro</b> con límite (6 por fila en pantalla ancha), con:</p>
+    <ul>
+      <li>Nombre del rubro y % ejecutado</li>
+      <li>Monto gastado / límite</li>
+      <li>Barra de progreso con color según estado: <span class="badge badge-green">verde = ok</span> <span class="badge badge-amber">ámbar = cerca del límite (85%+)</span> <span class="badge badge-red">rojo = superado (100%+)</span></li>
+      <li>Texto de seguimiento: "Restan $X" o "Superado por $X"</li>
+    </ul>
+    <p>Los rubros sin límite configurado también aparecen (si tuvieron gasto en el mes), marcados como "sin límite" para no perderlos de vista.</p>
+    <p>Más abajo, <b>Meses anteriores</b> muestra un recap compacto (gastos, ingresos, neto) de cada mes con datos, sin el detalle card-por-card del mes actual.</p>
+    <div class="tip">💡 El formato de cards de límite y seguimiento está inspirado directamente en Control Financiero.</div>
   </section>
 
-  <!-- RECURRENTES -->
-  <section class="section" id="recurrentes">
+  <!-- CONFIGURACION -->
+  <section class="section" id="configuracion">
     <div class="section-header">
-      <span class="section-icon">🔁</span>
+      <span class="section-icon">⚙️</span>
       <div>
-        <div class="section-title">Movimientos recurrentes</div>
-        <div class="section-subtitle">Automatizar cargas repetitivas</div>
+        <div class="section-title">Configuración</div>
+        <div class="section-subtitle">Pestaña de nivel principal — Rubros, Cuentas y Fijos en sub-pestañas</div>
       </div>
     </div>
-    <p>Configurá un movimiento (concepto, monto, rubro, cuenta) para que se genere automáticamente cada mes, sin tener que cargarlo a mano. Ideal para suscripciones o gastos fijos que no varían.</p>
+    <p>Todo lo que antes vivía en el panel izquierdo (Rubros, Cuentas, Fijos) se mudó acá, dentro de una única pestaña con 3 sub-pestañas internas. La carga de movimientos (que también vivía ahí) ahora está en Principal.</p>
+  </section>
+
+  <!-- RUBROS -->
+  <section class="section" id="rubros">
+    <div class="section-header">
+      <span class="section-icon">📁</span>
+      <div>
+        <div class="section-title">Rubros</div>
+        <div class="section-subtitle">Configuración → Rubros — Categorías de gasto e ingreso</div>
+      </div>
+    </div>
+    <h2>Crear o editar un rubro</h2>
+    <p>Definí un <b>nombre</b>, el <b>tipo</b> (gasto o ingreso) y, opcionalmente, un <b>límite mensual</b> en pesos. Los rubros con límite aparecen con card de seguimiento en la pestaña Presupuesto.</p>
+    <h2>Límites por mes</h2>
+    <p>El selector "Límites del mes" te permite definir un tope distinto para meses puntuales sin tener que cambiar el límite general del rubro.</p>
+    <h2>Borrar un rubro (y que se borre también en tus otros dispositivos)</h2>
+    <p>Al eliminar un rubro, la app anota el borrado en una <b>papelera interna</b>. La próxima vez que sincronice con Drive (automático o "Fusionar"), ese borrado viaja al otro dispositivo y también desaparece ahí — no hace falta borrarlo a mano en cada lado.</p>
+    <div class="info">ℹ️ Los rubros se identifican por <b>nombre</b> al sincronizar entre dispositivos (no por id interno, que es local a cada uno). Si creás un rubro nuevo en un dispositivo, en el otro aparece solo tras el próximo sync — y si lo borrás, también se borra solo.</div>
+  </section>
+
+  <!-- CUENTAS -->
+  <section class="section" id="cuentas">
+    <div class="section-header">
+      <span class="section-icon">🏦</span>
+      <div>
+        <div class="section-title">Cuentas</div>
+        <div class="section-subtitle">Configuración → Cuentas — Bancos, efectivo y Google Drive</div>
+      </div>
+    </div>
+    <p>Siempre existe la cuenta <b>Efectivo</b>. Podés nombrar hasta 3 cuentas de débito adicionales (banco, Mercado Pago, billetera virtual, etc.).</p>
+    <div class="tip">💡 Si le ponés nombre a una cuenta en un dispositivo, el nombre viaja solo al resto en el próximo sync (siempre que en el otro lado todavía tenga el nombre de fábrica "Banco 1"/"Banco 2" — si ya le pusiste un nombre propio distinto ahí, no se pisa).</div>
+    <h2>Google Drive (opcional)</h2>
+    <p>Pegá tu <b>Client ID</b> de Google Cloud Console para habilitar el backup en Drive. Sin este dato, los botones de Drive quedan ocultos y solo se usan carpeta local y snapshots.</p>
+    <div class="warning">⚠️ El Client ID es por dispositivo/navegador — si cambiás de PC o de celular, hay que configurarlo de nuevo ahí. Ver la sección <a href="#movil">📱 Uso en el celular</a> si no encontrás cómo llegar a Configuración desde el teléfono.</div>
+  </section>
+
+  <!-- FIJOS -->
+  <section class="section" id="fijos">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <div>
+        <div class="section-title">Fijos</div>
+        <div class="section-subtitle">Configuración → Fijos — Servicios fijos y compras en cuotas</div>
+      </div>
+    </div>
+    <p>Esta sub-pestaña agrupa los <b>servicios fijos</b> (vencimientos recurrentes) y las <b>compras en cuotas</b> en curso, para tenerlos a mano sin mezclarlos con la carga diaria.</p>
+    <h2 id="vencimientos">Próximos vencimientos</h2>
+    <p>El aviso "⚠️ Próximos vencimientos" alerta sobre servicios fijos o cuotas que están por vencer, para que no se te pasen antes de cargarlos como gasto.</p>
+  </section>
+
+  <!-- MENU -->
+  <section class="section" id="menu">
+    <div class="section-header">
+      <span class="section-icon">☰</span>
+      <div>
+        <div class="section-title">Menú ☰</div>
+        <div class="section-subtitle">Reemplaza al viejo pie de página</div>
+      </div>
+    </div>
+    <p>El ícono ☰ arriba a la derecha del header abre un panel con todo lo que antes estaba en el footer, agrupado:</p>
+    <table>
+      <thead><tr><th>Grupo</th><th>Contiene</th></tr></thead>
+      <tbody>
+        <tr><td><b>Estado</b></td><td>Aviso de almacenamiento lleno, actualización disponible</td></tr>
+        <tr><td><b>Ayuda</b></td><td>❓ Manual de usuario (este documento)</td></tr>
+        <tr><td><b>Datos</b></td><td>📂 Vincular carpeta, 📥 Exportar, 📤 Importar, ☁️ Drive (subir/restaurar), 💾 Snapshots locales</td></tr>
+        <tr><td><b>Reportes</b></td><td>🥧 Gastos por rubro, 📅 Historial mensual</td></tr>
+        <tr><td>—</td><td>🚪 Guardar y salir</td></tr>
+      </tbody>
+    </table>
+    <div class="note">📝 El botón "🔁 Movimientos recurrentes" y el panel "🏆 Top gastos del mes" se eliminaron de la app (no solo del footer) — no estaban aportando lo suficiente para el espacio que ocupaban.</div>
   </section>
 
   <!-- TORTA -->
@@ -438,26 +504,10 @@
       <span class="section-icon">🥧</span>
       <div>
         <div class="section-title">Gastos por rubro</div>
-        <div class="section-subtitle">Gráfico de torta — mes actual y últimos 12 meses</div>
+        <div class="section-subtitle">Menú ☰ → Reportes — Gráfico de torta, mes actual y últimos 12 meses</div>
       </div>
     </div>
-    <p>El botón 🥧 Rubros del footer abre un gráfico de torta con la distribución del gasto por categoría. Tiene dos pestañas: el mes en curso y una vista acumulada de los últimos 12 meses.</p>
-  </section>
-
-  <!-- AHORROS -->
-  <section class="section" id="ahorros">
-    <div class="section-header">
-      <span class="section-icon">💰</span>
-      <div>
-        <div class="section-title">Ahorros</div>
-        <div class="section-subtitle">Seguimiento de fondos guardados por subrubro</div>
-      </div>
-    </div>
-    <p>Registrá <b>ingresos</b> y <b>retiros</b> de ahorro por subrubro (por ejemplo, "Vacaciones" o "Fondo de emergencia"). El total general se ve en el encabezado del modal.</p>
-    <h2>Subrubros</h2>
-    <p>El botón ⚙️ Subrubros te permite crear, renombrar o eliminar las categorías de ahorro.</p>
-    <h2>Moneda por subrubro</h2>
-    <p>Cada subrubro de ahorro tiene su propia moneda (UYU o USD). Los totales se muestran separados por moneda en el encabezado, y cada tarjeta de subrubro indica cuál usa.</p>
+    <p>Abre un gráfico de torta con la distribución del gasto por categoría. Tiene dos pestañas: el mes en curso y una vista acumulada de los últimos 12 meses.</p>
   </section>
 
   <!-- HISTORIAL -->
@@ -466,7 +516,7 @@
       <span class="section-icon">📅</span>
       <div>
         <div class="section-title">Historial mensual</div>
-        <div class="section-subtitle">Consulta de meses cerrados</div>
+        <div class="section-subtitle">Menú ☰ → Reportes — Consulta de meses cerrados</div>
       </div>
     </div>
     <p>Filtrá por <b>tipo</b> de movimiento, <b>rubro</b> y <b>moneda</b> para revisar cualquier mes anterior. El botón <b>📊 Exportar Excel</b> descarga el detalle completo del historial a una planilla, incluyendo la columna Moneda.</p>
@@ -477,23 +527,38 @@
     <div class="section-header">
       <span class="section-icon">💾</span>
       <div>
-        <div class="section-title">Backup y datos</div>
-        <div class="section-subtitle">Cómo se guardan y protegen los datos</div>
+        <div class="section-title">Backup y sincronización</div>
+        <div class="section-subtitle">Cómo se guardan, protegen y sincronizan los datos entre dispositivos</div>
       </div>
     </div>
     <h2>Dónde viven los datos</h2>
-    <p>Todo se guarda en el <code>localStorage</code> del navegador, en el dispositivo. No hay servidor ni base de datos externa.</p>
+    <p>Todo se guarda en el <code>localStorage</code> del navegador, en el dispositivo. No hay servidor ni base de datos externa. Las claves usadas (<code>fm_*</code>) son propias de esta app — no se mezclan con FinanzasPro Ledger aunque uses el mismo navegador.</p>
     <h2>Métodos de backup</h2>
     <table>
       <thead><tr><th>Método</th><th>Cómo funciona</th></tr></thead>
       <tbody>
-        <tr><td><b>💾 Local (snapshots)</b></td><td>Guarda automáticamente hasta 10 copias en el propio navegador. Se puede restaurar desde el botón "Local" del footer.</td></tr>
+        <tr><td><b>💾 Local (snapshots)</b></td><td>Guarda automáticamente hasta 10 copias en el propio navegador. Se puede restaurar desde el menú ☰ → Snapshots locales.</td></tr>
         <tr><td><b>📂 Carpeta</b></td><td>Vinculás una carpeta del dispositivo y la app escribe un backup ahí en cada cambio importante (con debounce de 5 segundos).</td></tr>
-        <tr><td><b>☁️ Drive</b></td><td>Requiere Client ID configurado en Cuentas. Subís o restaurás backups manualmente con los botones ☁️ Drive.</td></tr>
+        <tr><td><b>☁️ Drive</b></td><td>Requiere Client ID configurado en Configuración → Cuentas. Usa una carpeta visible y propia, <b>"FinanzasMariela"</b>, separada de la carpeta "FinanzasPro" de la app vieja.</td></tr>
         <tr><td><b>📥 Exportar / 📤 Importar</b></td><td>Backup manual a un archivo <code>.json</code> que podés guardar donde quieras.</td></tr>
       </tbody>
     </table>
     <div class="warning">⚠️ Ningún método reemplaza a los otros — usalos combinados. Los snapshots locales se pierden si borrás datos del navegador.</div>
+
+    <h2>Sincronización automática entre dispositivos (vía Drive)</h2>
+    <p>Si tenés Drive configurado en dos o más dispositivos (por ejemplo celular y PC), unos 5 segundos después de abrir la app se revisa Drive en silencio y se fusiona lo nuevo, sin popups ni interrupciones. Lo que trae:</p>
+    <table>
+      <thead><tr><th>Dato</th><th>¿Se sincroniza?</th></tr></thead>
+      <tbody>
+        <tr><td>Movimientos (gastos/ingresos/transferencias)</td><td>✅ Sí — por identidad única, nunca duplica ni pisa uno más nuevo con uno viejo</td></tr>
+        <tr><td>Rubros nuevos</td><td>✅ Sí — por nombre, junto con su límite mensual si lo tenía</td></tr>
+        <tr><td>Rubros borrados</td><td>✅ Sí — con papelera interna, se propaga el borrado a los demás dispositivos</td></tr>
+        <tr><td>Nombres de cuentas (bancos)</td><td>✅ Sí — solo si acá seguía el nombre de fábrica; si ya le pusiste uno propio, no se pisa</td></tr>
+        <tr><td>Ahorros (subrubros y movimientos)</td><td>❌ No — hoy no se fusionan automáticamente</td></tr>
+        <tr><td>Fijos y cuotas</td><td>❌ No — hoy no se fusionan automáticamente</td></tr>
+      </tbody>
+    </table>
+    <div class="info">ℹ️ También podés forzar la sincronización a mano desde el menú ☰: <b>☁️ Restaurar de Drive</b> te muestra los backups disponibles con dos opciones — <b>🔀 Fusionar</b> (suma lo nuevo, recomendado) o <b>Reemplazar</b> (borra todo lo local y lo cambia por ese backup — usar solo si sabés lo que hacés).</div>
   </section>
 
   <!-- SALIR -->
@@ -502,10 +567,29 @@
       <span class="section-icon">🚪</span>
       <div>
         <div class="section-title">Salir</div>
-        <div class="section-subtitle">Cierre seguro con backup</div>
+        <div class="section-subtitle">Menú ☰ → Guardar y salir — Cierre seguro con backup</div>
       </div>
     </div>
-    <p>El botón 🚪 Salir del footer guarda un snapshot, intenta backup en carpeta local (si está vinculada) y en Drive (si hay token vigente), y te muestra un resumen del resultado antes de cerrar.</p>
+    <p>Guarda un snapshot local, intenta backup en carpeta local (si está vinculada) y sube a Drive.</p>
+    <div class="warning">⚠️ Si Drive está configurado (tenés Client ID cargado), subir el backup es <b>obligatorio</b> para poder salir: si el token venció, la app va a pedirte reautenticar con Google (puede abrir un popup) y no te va a dejar cerrar hasta lograrlo o hasta que decidas desactivar Drive. Esto es a propósito, para que nunca cierres pensando que sincronizó cuando en realidad no lo hizo.</div>
+    <p>Si cancelás la autenticación o falla, no perdés datos — el snapshot local ya quedó guardado — pero tenés que reintentar "Salir" o desactivar el Client ID en Configuración → Cuentas si por ahora no vas a usar Drive.</p>
+  </section>
+
+  <!-- MOVIL -->
+  <section class="section" id="movil">
+    <div class="section-header">
+      <span class="section-icon">📱</span>
+      <div>
+        <div class="section-title">Uso en el celular</div>
+        <div class="section-subtitle">Vista Rápida y cómo llegar a Configuración desde el teléfono</div>
+      </div>
+    </div>
+    <p>En pantallas chicas (≤480px de ancho), la app abre directo en la <b>Vista Rápida</b>: una pantalla fija pensada solo para cargar un gasto en segundos (monto grande, chips de rubro, moneda, cuenta y fecha). No tiene botón para volver a la app completa — es intencional, para que cargar un gasto sea lo más rápido posible.</p>
+    <h2>Cómo llegar a Configuración, Presupuesto, etc. desde el celular</h2>
+    <p>Abrí la app agregando <code>?completa=1</code> al final del link:</p>
+    <pre>https://eduardoguillermo.github.io/finanzas-mariela/?completa=1</pre>
+    <p>Eso fuerza la app completa (con menú ☰ y las 4 pestañas) aunque la pantalla sea chica. Se ve reducida porque está pensada para pantalla grande, pero es la única forma de llegar a Configuración desde el teléfono.</p>
+    <div class="tip">💡 Usalo la primera vez para configurar el Client ID de Drive en el celular — después, la Vista Rápida sincroniza sola.</div>
   </section>
 
   <!-- CONSOLA -->
@@ -521,15 +605,15 @@
     <pre>// Ver todos los rubros
 console.log(JSON.stringify(DB.rubros))
 
-// Ver últimos movimientos
-console.log(JSON.stringify(DB.movimientos.slice(-5)))
+// Ver rubros borrados (papelera)
+console.log(JSON.stringify(DB.rubrosBorrados))
 
-// Ver recurrentes configurados
-console.log(JSON.stringify(DB.recurrentes))</pre>
+// Ver últimos movimientos
+console.log(JSON.stringify(DB.movimientos.slice(-5)))</pre>
 
     <h2>Drive</h2>
     <pre>// Ver token de Drive activo
-console.log(gToken ? 'Token activo' : 'Sin token')</pre>
+console.log(gmGToken ? 'Token activo' : 'Sin token')</pre>
   </section>
 
   <!-- CHANGELOG -->
@@ -543,19 +627,66 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
     </div>
 
     <div class="changelog-entry">
-      <div class="changelog-version"><span class="v-num">v13.88</span><span class="changelog-tag tag-feature">feature</span></div>
+      <div class="changelog-version"><span class="v-num">v0.10</span><span class="changelog-tag tag-feature">feature</span></div>
       <ul class="changelog-list">
-        <li>Doble moneda ARS/USD: switch $U/USD en el header, campo Moneda en Carga, filtro por moneda en Historial (con columna en export Excel) y moneda por subrubro en Ahorros con totales separados</li>
-        <li>Splash: frase "especial para Mariela" reubicada en Dancing Script 32px (antes decía "Development by Guille"), y leyenda de versión reducida al 50%</li>
+        <li>Al tocar "Salir", si Drive está configurado, subir el backup pasa a ser obligatorio: si el token venció, pide reautenticar y no cierra hasta lograrlo (o hasta desactivar Drive)</li>
       </ul>
     </div>
 
     <div class="changelog-entry">
-      <div class="changelog-version"><span class="v-num">v13.77</span><span class="changelog-tag tag-docs">docs</span></div>
+      <div class="changelog-version"><span class="v-num">v0.9</span><span class="changelog-tag tag-feature">feature</span></div>
       <ul class="changelog-list">
-        <li>Nuevo manual de usuario (instructivo.html) con secciones navegables, igual formato que Control Financiero</li>
-        <li>Botones de ayuda contextual (🟡 ?) agregados en Carga, Rubros, Cuentas, Fijos, Libro diario, Presupuesto, Recurrentes, Gastos por rubro, Ahorros, Historial y Backup</li>
-        <li>Botón global ❓ Ayuda agregado al footer</li>
+        <li>El borrado de rubros ahora se propaga entre dispositivos: papelera interna (tombstones) que viaja con el sync automático y con "Fusionar"</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.8</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>El sync también trae los nombres de cuentas/bancos configurados en otro dispositivo (si acá seguían con el nombre de fábrica)</li>
+        <li>Fix: la Vista Rápida móvil todavía decía "FinanzasPro" en el encabezado — corregido a "Finanzas Mariela"</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.7</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Ícono propio de la app (tarjeta índigo + barras ascendentes en teal), favicon y apple-touch-icon — antes usaba fotos de stock heredadas de FinanzasPro</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.6</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>El sync trae rubros nuevos por nombre (auto al abrir y "Fusionar"), incluyendo el límite mensual que tenían configurado en origen</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.4 – v0.5</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Fix: la pantalla Principal no scrolleaba (herencia de CSS del layout viejo de 3 columnas fijas)</li>
+        <li>Cards de Presupuesto reducidas y fijadas a 6 columnas por fila</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.3</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Reorganización mayor: 4 pestañas de nivel principal (Principal / Ahorro / Presupuesto / Configuración)</li>
+        <li>Carga de movimiento pasa a ser horizontal, arriba del libro diario (estilo Control Financiero), a todo el ancho</li>
+        <li>Rubros, Cuentas y Fijos se mudan a Configuración con sub-pestañas; desaparece el panel izquierdo viejo</li>
+        <li>Presupuesto: nueva pestaña con cards de límite y seguimiento por rubro (mes actual) + recap de meses anteriores</li>
+        <li>Se elimina el módulo de Movimientos recurrentes y el panel "Top gastos del mes"</li>
+        <li>Cards del dashboard superior (Mes actual / Bancos y efectivo) reducidas ~50%</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.1 – v0.2</span><span class="changelog-tag tag-infra">infra</span></div>
+      <ul class="changelog-list">
+        <li>Nace Finanzas Mariela: instancia y repositorio nuevos, totalmente aislados de FinanzasPro Ledger (repo <code>finanzas-mariela</code>, claves de localStorage <code>fm_*</code>, carpeta de Drive "FinanzasMariela")</li>
+        <li>Paleta oscura estilo Control Financiero (navy + índigo), bordes de color por panel, menú ☰ reemplazando el footer</li>
       </ul>
     </div>
 
