@@ -856,7 +856,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.13';
+const APP_VERSION = '0.14';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -2762,7 +2762,7 @@ function gmAbrirHistorial() {
     const rubrosOpts = DB.rubros.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
     const ov = document.createElement('div');
     ov.id = 'modal-gm-historial';
-    ov.style.cssText = 'position:fixed;inset:0;background:var(--bg1,#f8fafc);z-index:3000;display:flex;flex-direction:column;overflow:hidden;';
+    ov.style.cssText = 'position:fixed;inset:0;background:var(--bg-subtle,#0f172a);color:var(--text-main);z-index:3000;display:flex;flex-direction:column;overflow:hidden;';
     ov.innerHTML = `
     <div style="background:var(--bg-card,white);border-bottom:2px solid var(--border);flex-shrink:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;">
@@ -2854,7 +2854,7 @@ function renderHistorial() {
 
     let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
         <thead>
-            <tr style="border-bottom:2px solid var(--border);background:var(--bg2);">
+            <tr style="border-bottom:2px solid var(--border);background:var(--bg-card);">
                 <th style="padding:10px 8px;text-align:left;color:var(--text-muted);">Mes</th>
                 <th style="padding:10px 8px;text-align:right;color:var(--ingreso);">Ingresos</th>
                 <th style="padding:10px 8px;text-align:right;color:var(--gasto);">Gastos</th>
@@ -2896,7 +2896,7 @@ function renderHistorial() {
         </tr>
         <tr id="detalle-hist-${clave}" style="display:none;">
             <td colspan="6" style="padding:0 8px 12px;">
-                <div style="background:var(--bg2);border-radius:6px;padding:10px;margin-top:4px;">
+                <div style="background:var(--bg-card);border-radius:6px;padding:10px;margin-top:4px;">
                     <table style="width:100%;border-collapse:collapse;font-size:12px;">
                         <thead><tr style="border-bottom:1px solid var(--border);">
                             <th style="padding:4px 6px;text-align:left;color:var(--text-muted);">Fecha</th>
