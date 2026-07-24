@@ -198,7 +198,10 @@
         .presu-global-bar { width: 160px; }
         .presu-global-bar .budget-bar-bg { height: 6px; margin-top: 4px; }
 
-        .grid-presupuesto { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 8px; }
+        .grid-presupuesto { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+        @media (max-width: 900px)  { .grid-presupuesto { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 600px)  { .grid-presupuesto { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 420px)  { .grid-presupuesto { grid-template-columns: repeat(2, 1fr); } }
         .budget-card {
             background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 7px;
             padding: 8px 9px; border-left: 3px solid var(--border);
@@ -844,7 +847,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.4';
+const APP_VERSION = '0.5';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -3836,7 +3839,7 @@ function gmMontarVistaRapida() {
     ov.className = 'vr-overlay';
     ov.innerHTML = `
         <div class="vr-header">
-            <div class="vr-brand">Finanzas<span>Pro</span> · Rápida</div>
+            <div class="vr-brand">Finanzas<span>Mariela</span> · Rápida</div>
             <div class="vr-header-actions">
                 <button class="vr-drive-btn" onclick="gmDriveSubir()" title="Sincronizar con Drive ahora">☁️ Drive</button>
                 <button class="vr-cerrar" onclick="gmCerrarVistaRapida()">✕ Cerrar</button>
