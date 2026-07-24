@@ -559,7 +559,8 @@
             <span style="font-family:'Dancing Script',cursive;font-size:13px;color:#1e40af;margin-left:6px;white-space:nowrap">Development by Guille</span>
         </div>
 
-        <div class="menu-wrap">
+        <div class="menu-wrap" style="display:flex;align-items:center;gap:6px;">
+            <button id="btn-salir-header" class="btn-icon" title="Guardar y salir" onclick="gmSalir();" style="font-size:14px;border:1px solid #334155;border-radius:var(--radius-sm);padding:5px 10px;background:#334155;color:white;white-space:nowrap;">🚪 Guardar y salir</button>
             <button id="btn-menu-toggle" class="btn-icon" title="Más opciones" style="font-size:17px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--bg-subtle);">☰</button>
             <div id="dropdown-panel" class="dropdown-panel">
                 <span id="db-status" style="color:var(--text-muted);font-size:11px;">Almacenamiento local activo</span>
@@ -581,8 +582,6 @@
                 <div class="dd-label">Reportes</div>
                 <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmAbrirTortas(); cerrarMenuDropdown();">🥧 Gastos por rubro</button>
                 <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmAbrirHistorial(); cerrarMenuDropdown();">📅 Historial mensual</button>
-                <hr>
-                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmSalir();" style="background:#334155;color:white;border-color:#334155;">🚪 Guardar y salir</button>
                 <input type="file" id="file-import" accept=".json" style="display:none" onchange="importarBackup(event); cerrarMenuDropdown();">
             </div>
         </div>
@@ -857,7 +856,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.12';
+const APP_VERSION = '0.13';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
