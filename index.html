@@ -847,7 +847,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.5';
+const APP_VERSION = '0.6';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1117,6 +1117,35 @@ function gmMergeMovimientos(remotos) {
     return { agregados, actualizados, sinIdentidad };
 }
 
+// ── Merge de rubros por nombre: agrega los que faltan localmente, nunca toca los que ya existen ──
+// (los ids de rubro son locales a cada dispositivo -DB.nid-, así que el nombre es la única
+// identidad estable entre dos instancias distintas de la app)
+function gmMergeRubros(remoto) {
+    if (!remoto || !Array.isArray(remoto.rubros)) return 0;
+    const existentes = new Set(DB.rubros.map(r => (r.nombre || '').trim().toLowerCase()));
+    let agregados = 0;
+    remoto.rubros.forEach(rr => {
+        const clave = (rr.nombre || '').trim().toLowerCase();
+        if (!clave || existentes.has(clave)) return; // ya existe localmente: no se toca
+        const nuevoId = DB.nid++;
+        DB.rubros.push({ id: nuevoId, nombre: rr.nombre, tipo: rr.tipo || 'gasto' });
+        existentes.add(clave);
+        agregados++;
+        // Traer también los límites mensuales que tenía configurados en el origen
+        if (remoto.presupuestosHistoricos) {
+            Object.keys(remoto.presupuestosHistoricos).forEach(mesClave => {
+                const val = remoto.presupuestosHistoricos[mesClave]?.[rr.id];
+                if (val === undefined) return;
+                if (!DB.presupuestosHistoricos[mesClave]) DB.presupuestosHistoricos[mesClave] = {};
+                if (DB.presupuestosHistoricos[mesClave][nuevoId] === undefined) {
+                    DB.presupuestosHistoricos[mesClave][nuevoId] = val;
+                }
+            });
+        }
+    });
+    return agregados;
+}
+
 // ── Sync automático al abrir: fusiona el backup más nuevo de Drive, sin popup ──
 function gmAutoMergeAlAbrir() {
     gmGetToken(token => {
@@ -1133,10 +1162,14 @@ function gmAutoMergeAlAbrir() {
                 .then(data2 => {
                     const remoto = migrar(data2);
                     const { agregados, actualizados } = gmMergeMovimientos(remoto.movimientos);
-                    if (agregados || actualizados) {
+                    const rubrosNuevos = gmMergeRubros(remoto);
+                    if (agregados || actualizados || rubrosNuevos) {
                         saveImmediate();
                         render();
-                        toast(`🔀 Sync: ${agregados} gasto(s) nuevo(s) desde Drive`, 'info', 3500);
+                        const partes = [];
+                        if (agregados || actualizados) partes.push(`${agregados} gasto(s) nuevo(s)`);
+                        if (rubrosNuevos) partes.push(`${rubrosNuevos} rubro(s) nuevo(s)`);
+                        toast(`🔀 Sync: ${partes.join(', ')} desde Drive`, 'info', 3500);
                     }
                 });
         })
@@ -1152,10 +1185,12 @@ function gmDriveFusionarArchivo(id, token) {
     .then(data => {
         const remoto = migrar(data);
         const { agregados, actualizados, sinIdentidad } = gmMergeMovimientos(remoto.movimientos);
+        const rubrosNuevos = gmMergeRubros(remoto);
         saveImmediate();
         document.getElementById('modal-gm-drive')?.remove();
         render();
-        let msg = `✅ Fusión completa: ${agregados} nuevo(s), ${actualizados} actualizado(s)`;
+        let msg = `✅ Fusión completa: ${agregados} gasto(s) nuevo(s), ${actualizados} actualizado(s)`;
+        if (rubrosNuevos) msg += `, ${rubrosNuevos} rubro(s) nuevo(s)`;
         if (sinIdentidad) msg += `, ${sinIdentidad} sin fusionar (backup viejo)`;
         toast(msg, 'success', 4500);
     })
