@@ -119,6 +119,39 @@
         .balance-item { display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--text-muted); }
         .balance-item b { font-size: 12px; font-weight: 700; color: var(--text-main); }
 
+        /* ── DASHBOARD DE ESTADO (estilo Control Financiero: cajas grandes) ── */
+        .dash-label {
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+            color: var(--text-muted); margin: 2px 2px 6px; flex-shrink: 0;
+        }
+        .grid-dashboard {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px; margin-bottom: 8px; flex-shrink: 0;
+        }
+        .card-bal {
+            background: var(--bg-card); padding: 12px 14px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        }
+        .card-bal h4 { margin: 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 800; }
+        .card-bal p  { margin: 6px 0 0; font-size: 19px; font-weight: 800; color: var(--text-main); }
+
+        /* ── MENÚ DESPLEGABLE (☰, reemplaza el footer) ── */
+        .menu-wrap { position: relative; }
+        #btn-menu-toggle { cursor: pointer; color: var(--text-main); }
+        .dropdown-panel {
+            position: absolute; top: calc(100% + 8px); right: 0; width: 250px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+            box-shadow: var(--shadow-md); padding: 10px; display: none; flex-direction: column; gap: 6px;
+            z-index: 600;
+        }
+        .dropdown-panel.open { display: flex; }
+        .dropdown-panel hr { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+        .dropdown-panel .dd-label {
+            font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+            color: var(--text-muted); margin: 2px 2px 0;
+        }
+        .dropdown-panel .dd-btn { justify-content: flex-start; }
+
         .workspace-grid {
             display: grid; grid-template-columns: 360px 1fr 310px;
             gap: 8px; flex-grow: 1; min-height: 0;
@@ -462,31 +495,52 @@
             <span style="font-family:'Dancing Script',cursive;font-size:13px;color:#1e40af;margin-left:6px;white-space:nowrap">Development by Guille</span>
         </div>
 
-        <div class="balance-strip">
-            <div class="strip-group">
-                <span class="strip-group-title">🎯 Mes actual</span>
-                <div class="balance-item">Ingresos: <b id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</b></div>
-                <div class="sep-v"></div>
-                <div class="balance-item">Gastos: <b id="view-mes-gastos" style="color:var(--gasto)">$0,00</b></div>
-                <div class="sep-v"></div>
-                <div class="balance-item">Presup: <b id="view-budget-general" style="color:var(--primary)">$0,00</b></div>
-                <div class="sep-v"></div>
-                <div class="balance-item">Restan: <b id="view-budget-restante">$0,00</b></div>
-            </div>
-            <div class="strip-group">
-                <span class="strip-group-title">💰 Tenencias</span>
-                <div class="balance-item">Neto: <b id="view-balance">$0,00</b></div>
-                <div class="sep-v"></div>
-                <div class="balance-item">💵 Efec: <b id="view-bal-efectivo">$0,00</b></div>
-                <div class="sep-v"></div>
-                <div class="balance-item" id="grp-debito1">💳 <span id="label-hdr-debito1">Banco 1</span>: <b id="view-bal-debito1">$0,00</b></div>
-                <div class="sep-v" id="sep-d1"></div>
-                <div class="balance-item" id="grp-debito2">💳 <span id="label-hdr-debito2">Banco 2</span>: <b id="view-bal-debito2">$0,00</b></div>
-                <div class="sep-v" id="sep-d2"></div>
-                <div class="balance-item" id="grp-debito3" style="display:none">💳 <span id="label-hdr-debito3">Banco 3</span>: <b id="view-bal-debito3">$0,00</b></div>
+        <div class="menu-wrap">
+            <button id="btn-menu-toggle" class="btn-icon" title="Más opciones" style="font-size:17px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--bg-subtle);">☰</button>
+            <div id="dropdown-panel" class="dropdown-panel">
+                <span id="db-status" style="color:var(--text-muted);font-size:11px;">Almacenamiento local activo</span>
+                <span id="carpeta-status" style="display:none; font-size:10px; color:var(--ingreso); font-weight:700;"></span>
+                <span id="storage-warning" class="storage-warn">⚠️ Almacenamiento lleno</span>
+                <span id="pwa-update-toast" class="pwa-update-pill" onclick="forzarRecargaPWA()">🔄 Actualización disponible</span>
+                <hr>
+                <div class="dd-label">Ayuda</div>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="window.open('./instructivo.html','_blank','width=1100,height=750,resizable=yes,scrollbars=yes'); cerrarMenuDropdown();">❓ Manual de usuario</button>
+                <hr>
+                <div class="dd-label">Datos</div>
+                <button class="btn-secondary btn-sm btn-block dd-btn" id="btn-carpeta" onclick="seleccionarCarpetaBackup(); cerrarMenuDropdown();">📂 Vincular carpeta</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="exportarBackup(); cerrarMenuDropdown();">📥 Exportar backup</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="document.getElementById('file-import').click();">📤 Importar backup</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" id="btn-gm-drive-up" onclick="gmDriveSubir(); cerrarMenuDropdown();" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">☁️ Subir a Drive</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" id="btn-gm-drive-down" onclick="gmDriveRestaurar(); cerrarMenuDropdown();" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">📂 Restaurar de Drive</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmMostrarSnapshots(); cerrarMenuDropdown();">💾 Snapshots locales</button>
+                <hr>
+                <div class="dd-label">Reportes</div>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmAbrirTortas(); cerrarMenuDropdown();">🥧 Gastos por rubro</button>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmAbrirHistorial(); cerrarMenuDropdown();">📅 Historial mensual</button>
+                <hr>
+                <button class="btn-secondary btn-sm btn-block dd-btn" onclick="gmSalir();" style="background:#334155;color:white;border-color:#334155;">🚪 Guardar y salir</button>
+                <input type="file" id="file-import" accept=".json" style="display:none" onchange="importarBackup(event); cerrarMenuDropdown();">
             </div>
         </div>
     </header>
+
+    <!-- DASHBOARD (estilo Control Financiero: cajas grandes, no franja compacta) -->
+    <div class="dash-label">🎯 Mes actual</div>
+    <div class="grid-dashboard">
+        <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
+        <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
+        <div class="card-bal"><h4>Presupuestado</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
+        <div class="card-bal"><h4>Restante</h4><p id="view-budget-restante">$0,00</p></div>
+    </div>
+    <div class="dash-label">💰 Tenencias</div>
+    <div class="grid-dashboard">
+        <div class="card-bal"><h4>Neto</h4><p id="view-balance">$0,00</p></div>
+        <div class="card-bal"><h4>💵 Efectivo</h4><p id="view-bal-efectivo">$0,00</p></div>
+        <div class="card-bal" id="grp-debito1"><h4 id="label-hdr-debito1">Banco 1</h4><p id="view-bal-debito1">$0,00</p></div>
+        <div class="card-bal" id="grp-debito2"><h4 id="label-hdr-debito2">Banco 2</h4><p id="view-bal-debito2">$0,00</p></div>
+        <div class="card-bal" id="grp-debito3" style="display:none"><h4 id="label-hdr-debito3">Banco 3</h4><p id="view-bal-debito3">$0,00</p></div>
+    </div>
+    <span id="sep-d2" style="display:none;"></span>
 
     <!-- WORKSPACE -->
     <div class="workspace-grid">
@@ -498,6 +552,7 @@
                 <button class="tab-btn" data-tab="tab-rubros">📁 Rubros</button>
                 <button class="tab-btn" data-tab="tab-bancos">🏦 Cuentas</button>
                 <button class="tab-btn" data-tab="tab-fijos">📋 Fijos</button>
+                <button class="tab-btn" data-tab="tab-ahorro">💰 Ahorro</button>
 
             </div>
 
@@ -656,6 +711,15 @@
                 <div id="cuotas-lista" style="flex:0 0 auto;"></div>
             </div>
 
+            <!-- TAB AHORRO -->
+            <div id="tab-ahorro" class="tab-content" style="flex-direction:column;gap:8px;overflow-y:auto;padding-bottom:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">Ahorro</span>
+                    <span id="ayuda-ahorro"></span>
+                </div>
+                <div id="ahorro-render-root"></div>
+            </div>
+
         </div>
 
         <!-- PANEL CENTRAL: LIBRO DIARIO -->
@@ -713,38 +777,6 @@
     </div>
 
 
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-left">
-            <span style="color:var(--text-muted)" id="db-status">Almacenamiento local activo</span>
-            <span id="carpeta-status" style="display:none; font-size:10px; color:var(--ingreso); font-weight:700;"></span>
-            <span id="storage-warning" class="storage-warn">⚠️ Almacenamiento lleno</span>
-            <span id="pwa-update-toast" class="pwa-update-pill" onclick="forzarRecargaPWA()">🔄 Actualización disponible</span>
-        </div>
-        <div class="footer-right">
-            <button class="btn-secondary btn-sm" onclick="window.open('./instructivo.html','_blank','width=1100,height=750,resizable=yes,scrollbars=yes')" title="Manual de usuario" style="background:#6366f1;color:white;border-color:#6366f1;">❓ Ayuda</button>
-
-            <span class="footer-divider"></span>
-
-            <button class="btn-secondary btn-sm" id="btn-carpeta" onclick="seleccionarCarpetaBackup()" title="Vincular carpeta para backup automático">📂 Carpeta</button>
-            <button class="btn-secondary btn-sm" onclick="exportarBackup()" title="Exportar backup a archivo">📥 Exportar</button>
-            <button class="btn-secondary btn-sm" onclick="document.getElementById('file-import').click()" title="Importar backup desde archivo">📤 Importar</button>
-            <button class="btn-secondary btn-sm" id="btn-gm-drive-up" onclick="gmDriveSubir()" title="Subir backup a Drive" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">☁️ Drive</button>
-            <button class="btn-secondary btn-sm" id="btn-gm-drive-down" onclick="gmDriveRestaurar()" title="Restaurar desde Drive" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">📂 Drive</button>
-            <button class="btn-secondary btn-sm" onclick="gmMostrarSnapshots()" title="Ver/restaurar snapshots locales" style="background:#0f766e;color:white;border-color:#0f766e;">💾 Local</button>
-
-            <span class="footer-divider"></span>
-
-            <button class="btn-secondary btn-sm" onclick="gmAbrirAhorros()" title="Ahorros por subrubro" style="background:#0d9488;color:white;border-color:#0d9488;">💰 Ahorros</button>
-            <button class="btn-secondary btn-sm" onclick="gmAbrirTortas()" title="Gastos por rubro" style="background:#b45309;color:white;border-color:#b45309;">🥧 Rubros</button>
-            <button class="btn-secondary btn-sm" onclick="gmAbrirHistorial()" title="Ver historial mensual" style="background:#6d28d9;color:white;border-color:#6d28d9;">📅 Historial</button>
-
-            <span class="footer-divider"></span>
-
-            <button class="btn-secondary btn-sm" onclick="gmSalir()" title="Guardar y salir" style="background:#334155;color:white;border-color:#334155;">🚪 Salir</button>
-            <input type="file" id="file-import" accept=".json" style="display:none" onchange="importarBackup(event)">
-        </div>
-    </footer>
 </div>
 
 <div id="contenedor-impresion-pwa"></div>
@@ -753,7 +785,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.1';
+const APP_VERSION = '0.2';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -797,7 +829,8 @@ function gmInsertarAyudas() {
     const mapa = {
         'ayuda-carga':'carga', 'ayuda-rubros':'rubros', 'ayuda-cuentas':'cuentas',
         'ayuda-fijos':'fijos', 'ayuda-libro-diario':'libro-diario',
-        'ayuda-presupuesto':'presupuesto', 'ayuda-recurrentes':'recurrentes'
+        'ayuda-presupuesto':'presupuesto', 'ayuda-recurrentes':'recurrentes',
+        'ayuda-ahorro':'ahorros'
     };
     Object.keys(mapa).forEach(id => {
         const el = document.getElementById(id);
@@ -2316,9 +2349,9 @@ function gmMostrarVencimientos() {
 }
 
 
-function gmAbrirAhorros() {
-    var el = document.getElementById('modal-gm-ahorros');
-    if (el) el.remove();
+function gmRenderAhorroTab() {
+    var root = document.getElementById('ahorro-render-root');
+    if (!root) return;
     var saldos = gmSaldosPorSubrubro();
     var totalUYU = 0, totalUSD = 0;
     DB.ahorros.subrubros.forEach(function(s) {
@@ -2354,30 +2387,23 @@ function gmAbrirAhorros() {
     var subOptsHtml = DB.ahorros.subrubros.map(function(s) {
         return '<option value="' + s.id + '">' + s.nombre + ' (' + (gmMonedaSubrubro(s)==='USD'?'USD':'$U') + ')</option>';
     }).join('');
-    var ov = document.createElement('div');
-    ov.id = 'modal-gm-ahorros';
-    ov.style.cssText = 'position:fixed;inset:0;background:var(--bg-main,#f1f5f9);z-index:3000;display:flex;flex-direction:column;overflow:hidden;';
-    var closeBtn = '<button id="btn-cerrar-ahorros" style="background:#f1f5f9;color:#334155;border:none;border-radius:6px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:600;">&#x2715; Cerrar</button>';
     var guardarBtn = '<button id="btn-guardar-ahorro" style="padding:7px 16px;background:var(--ingreso);color:white;border:none;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;">&#x2713; Guardar</button>';
     var subModal = '<button id="btn-subrubros-ahorros" style="background:#6d28d9;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600;">&#x2699; Subrubros</button>';
-    ov.innerHTML = '<div style="background:var(--bg-card);border-bottom:2px solid var(--border);flex-shrink:0;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;flex-wrap:wrap;gap:6px;">'
-        + '<div style="display:flex;align-items:center;gap:12px;"><span style="font-size:20px;">&#x1F4B0;</span><h2 style="margin:0;font-size:18px;color:var(--text-main);display:flex;align-items:center;">Ahorros' + btnAyuda('ahorros') + '</h2>'
+    root.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;flex-wrap:wrap;gap:6px;">'
+        + '<div style="display:flex;align-items:center;gap:12px;"><span style="font-size:20px;">&#x1F4B0;</span>'
         + '<span style="font-size:14px;font-weight:700;color:var(--ingreso);">' + fmtMoneda(totalUYU, 'UYU') + '</span>'
         + '<span style="font-size:13px;font-weight:700;color:var(--ingreso);">' + fmtMoneda(totalUSD, 'USD') + '</span></div>'
-        + '<div style="display:flex;gap:8px;">' + subModal + closeBtn + '</div></div>'
-        + '<div style="display:flex;flex-wrap:wrap;gap:10px;padding:0 20px 14px;">' + tarjetasHtml + '</div>'
-        + '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px;align-items:flex-end;">'
+        + subModal + '</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:10px;padding-bottom:14px;">' + tarjetasHtml + '</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;align-items:flex-end;">'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Subrubro</label><select id="ah-subrubro" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;">' + subOptsHtml + '</select></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Tipo</label><select id="ah-tipo" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;"><option value="ingreso">Ingreso</option><option value="retiro">Retiro</option></select></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Monto</label><input id="ah-monto" type="number" min="0" step="any" placeholder="0" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;width:100px;"></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Concepto</label><input id="ah-concepto" type="text" placeholder="Opcional" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;width:150px;"></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Fecha</label><input id="ah-fecha" type="date" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;"></div>'
-        + guardarBtn + '</div></div>'
-        + '<div style="flex:1;overflow-y:auto;padding:12px 20px;"><div id="tabla-historial-ahorros"></div></div>';
-    document.body.appendChild(ov);
+        + guardarBtn + '</div>'
+        + '<div id="tabla-historial-ahorros"></div>';
     document.getElementById('ah-fecha').value = hoyISO();
-    document.getElementById('btn-cerrar-ahorros').addEventListener('click', function(){ ov.remove(); });
     document.getElementById('btn-guardar-ahorro').addEventListener('click', gmGuardarAhorro);
     document.getElementById('btn-subrubros-ahorros').addEventListener('click', gmAbrirSubrubros);
     gmRenderTablaHistorialAhorros();
@@ -2395,7 +2421,7 @@ function gmGuardarAhorro() {
     DB.ahorros.movimientos.push({ id: DB.ahorros.nid++, subrubroId: subrubroId, tipo: tipo, monto: monto, moneda: moneda, concepto: concepto, fecha: fecha });
     save();
     toast('✅ Ahorro guardado', 'success');
-    gmAbrirAhorros();
+    gmRenderAhorroTab();
 }
 
 async function gmEliminarAhorro(id) {
@@ -2403,7 +2429,7 @@ async function gmEliminarAhorro(id) {
     if (!ok) return;
     DB.ahorros.movimientos = DB.ahorros.movimientos.filter(function(m){ return m.id !== id; });
     save();
-    gmAbrirAhorros();
+    gmRenderAhorroTab();
     toast('Eliminado', 'success');
 }
 
@@ -2733,6 +2759,25 @@ function toggleDetalleMes(clave) {
     if (btn) btn.textContent = visible ? 'Ver' : 'Cerrar';
 }
 
+function cerrarMenuDropdown() {
+    var dd = document.getElementById('dropdown-panel');
+    if (dd) dd.classList.remove('open');
+}
+function initMenuDropdown() {
+    var btn = document.getElementById('btn-menu-toggle');
+    var dd = document.getElementById('dropdown-panel');
+    if (!btn || !dd) return;
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dd.classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+        if (dd.classList.contains('open') && !dd.contains(e.target) && e.target !== btn) {
+            dd.classList.remove('open');
+        }
+    });
+}
+
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -2740,6 +2785,7 @@ function initTabs() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             if (tabId === 'tab-fijos') gmRenderFijos();
+            if (tabId === 'tab-ahorro') gmRenderAhorroTab();
             document.getElementById(tabId).classList.add('active');
             this.classList.add('active');
         });
@@ -3999,6 +4045,7 @@ window.addEventListener('DOMContentLoaded', function() {
     });
 
     initTabs();
+    initMenuDropdown();
     initMesesVisor();
     gmInsertarAyudas();
 
