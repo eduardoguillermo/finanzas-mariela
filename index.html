@@ -850,7 +850,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.9';
+const APP_VERSION = '0.10';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1359,12 +1359,27 @@ async function gmSalir() {
         }
     }
 
-    // 3. Drive (si hay clientId y token vigente, sin popup) — desactivado en DEV_MODE
+    // 3. Drive: si está configurado, es obligatorio subir antes de salir.
+    //    Si el token venció, se pide reautenticar (puede abrir popup de Google) y NO se cierra
+    //    la app hasta lograrlo o hasta que el usuario cancele explícitamente.
     const tieneClientId = !DEV_MODE && !!gmGetClientId();
-    const tieneToken    = tieneClientId && gmGTokenCargarLocal();
-    if (tieneToken) {
+    if (tieneClientId) {
         try {
-            const folderId = await new Promise(resolve => gmDriveEnsureFolder(gmGToken, resolve));
+            const token = await new Promise((resolve, reject) => {
+                let listo = false;
+                const timeout = setTimeout(() => {
+                    if (listo) return;
+                    listo = true;
+                    reject(new Error('No se completó la autenticación con Google (tiempo agotado o cancelada).'));
+                }, 25000);
+                gmGetToken(t => {
+                    if (listo) return;
+                    listo = true;
+                    clearTimeout(timeout);
+                    if (t) resolve(t); else reject(new Error('No se obtuvo un token válido de Google.'));
+                });
+            });
+            const folderId = await new Promise(resolve => gmDriveEnsureFolder(token, resolve));
             const ahora  = new Date();
             const ts     = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
             const nombre = `finanzaspro_backup_${ts}.json`;
@@ -1375,21 +1390,23 @@ async function gmSalir() {
             form.append('file',     new Blob([data], {type:'application/json'}));
             const resp = await fetch(
                 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-                {method:'POST', headers:{Authorization:'Bearer '+gmGToken}, body:form}
+                {method:'POST', headers:{Authorization:'Bearer '+token}, body:form}
             );
             const f = await resp.json();
             if (f.id) {
                 lineas.push('☁️ Backup subido a Drive');
             } else {
                 gmGTokenLimpiar();
-                lineas.push('⚠️ Drive falló: ' + (f.error?.message || 'error desconocido'));
+                alert('⚠️ Drive está configurado pero la subida falló: ' + (f.error?.message || 'error desconocido') +
+                      '\n\nNo se cerró la app — el snapshot local ya está guardado, podés reintentar "Salir" o desactivar el Client ID en Configuración si no vas a usar Drive ahora.');
+                return;
             }
         } catch(e) {
             gmGTokenLimpiar();
-            lineas.push('⚠️ Drive falló: ' + e.message);
+            alert('⚠️ Drive está configurado pero no se pudo autenticar: ' + e.message +
+                  '\n\nNo se cerró la app — el snapshot local ya está guardado, podés reintentar "Salir" o desactivar el Client ID en Configuración si no vas a usar Drive ahora.');
+            return;
         }
-    } else if (tieneClientId) {
-        lineas.push('ℹ️ Drive: token vencido (reconectá Drive para subir)');
     }
 
     alert(lineas.join('\n') + '\n\nYa podés cerrar la pestaña.');
