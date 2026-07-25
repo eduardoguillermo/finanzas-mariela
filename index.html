@@ -593,6 +593,7 @@
         <div class="dash-label">🎯 Mes actual</div>
         <div class="grid-dashboard">
             <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
+            <div class="card-bal"><h4>Presupuesto</h4><p id="view-budget-presup" style="color:var(--primary)">$0,00</p></div>
             <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
             <div class="card-bal"><h4>Remanente</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
         </div>
@@ -861,7 +862,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.17';
+const APP_VERSION = '0.19';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -2582,6 +2583,9 @@ function gmRenderAhorroTab() {
         + '<div style="display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;align-items:flex-end;">'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Subrubro</label><select id="ah-subrubro" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;">' + subOptsHtml + '</select></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Tipo</label><select id="ah-tipo" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;"><option value="ingreso">Ingreso</option><option value="retiro">Retiro</option></select></div>'
+        + '<div id="ah-destino-tipo-wrap" style="display:none;"><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Destino</label><select id="ah-destino-tipo" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;"><option value="cuenta">Cuenta</option><option value="rubro">Rubro de gasto</option></select></div>'
+        + '<div id="ah-origen-wrap"><label id="ah-origen-label" style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Origen</label><select id="ah-origen" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;">' + getCuentas().map(function(c){ return '<option value="' + c.key + '">' + c.icon + ' ' + c.label + '</option>'; }).join('') + '</select></div>'
+        + '<div id="ah-rubro-destino-wrap" style="display:none;"><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Rubro de gasto</label><select id="ah-rubro-destino" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;">' + DB.rubros.filter(function(r){return r.tipo==='gasto';}).sort(function(a,b){return a.nombre.localeCompare(b.nombre);}).map(function(r){ return '<option value="' + r.id + '">' + r.nombre + (r.especial?' (especial)':'') + '</option>'; }).join('') + '</select></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Monto</label><input id="ah-monto" type="number" min="0" step="any" placeholder="0" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;width:100px;"></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Concepto</label><input id="ah-concepto" type="text" placeholder="Opcional" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;width:150px;"></div>'
         + '<div><label style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;display:block;margin-bottom:3px;">Fecha</label><input id="ah-fecha" type="date" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text-main);font-size:12px;"></div>'
@@ -2590,30 +2594,72 @@ function gmRenderAhorroTab() {
     document.getElementById('ah-fecha').value = hoyISO();
     document.getElementById('btn-guardar-ahorro').addEventListener('click', gmGuardarAhorro);
     document.getElementById('btn-subrubros-ahorros').addEventListener('click', gmAbrirSubrubros);
+    document.getElementById('ah-tipo').addEventListener('change', gmActualizarDestinoAhorro);
+    document.getElementById('ah-destino-tipo').addEventListener('change', gmActualizarDestinoAhorro);
+    gmActualizarDestinoAhorro();
     gmRenderTablaHistorialAhorros();
+}
+
+function gmActualizarDestinoAhorro() {
+    var tipoEl = document.getElementById('ah-tipo');
+    var destinoTipoWrap = document.getElementById('ah-destino-tipo-wrap');
+    var origenWrap = document.getElementById('ah-origen-wrap');
+    var origenLabel = document.getElementById('ah-origen-label');
+    var rubroWrap = document.getElementById('ah-rubro-destino-wrap');
+    if (!tipoEl) return;
+    var esRetiro = tipoEl.value === 'retiro';
+    destinoTipoWrap.style.display = esRetiro ? '' : 'none';
+    origenLabel.textContent = esRetiro ? 'Cuenta destino' : 'Origen';
+    var destinoTipo = document.getElementById('ah-destino-tipo').value;
+    var vaARubro = esRetiro && destinoTipo === 'rubro';
+    origenWrap.style.display = vaARubro ? 'none' : '';
+    rubroWrap.style.display  = vaARubro ? '' : 'none';
 }
 
 function gmGuardarAhorro() {
     var subrubroId = parseInt(document.getElementById('ah-subrubro').value);
     var sub = DB.ahorros.subrubros.find(function(x){ return x.id === subrubroId; });
     var tipo = document.getElementById('ah-tipo').value;
+    var esRetiro = tipo === 'retiro';
+    var destinoTipo = esRetiro ? document.getElementById('ah-destino-tipo').value : 'cuenta';
+    var vaARubro = esRetiro && destinoTipo === 'rubro';
+    var origen = vaARubro ? null : document.getElementById('ah-origen').value;
+    var rubroDestinoId = vaARubro ? parseInt(document.getElementById('ah-rubro-destino').value) : null;
     var monto = parseFloat(document.getElementById('ah-monto').value);
     var moneda = gmMonedaSubrubro(sub);
     var concepto = document.getElementById('ah-concepto').value.trim();
     var fecha = document.getElementById('ah-fecha').value || hoyISO();
     if (isNaN(monto) || monto <= 0) { toast('Ingresá un monto válido.', 'error'); return; }
-    DB.ahorros.movimientos.push({ id: DB.ahorros.nid++, subrubroId: subrubroId, tipo: tipo, monto: monto, moneda: moneda, concepto: concepto, fecha: fecha });
+    if (!vaARubro && !origen) { toast('Seleccioná una cuenta.', 'error'); return; }
+    if (vaARubro && isNaN(rubroDestinoId)) { toast('Seleccioná un rubro de gasto.', 'error'); return; }
+
+    var movGastoId = null;
+    if (vaARubro) {
+        movGastoId = DB.nid++;
+        DB.movimientos.push(gmTouch({
+            id: movGastoId, concepto: concepto || (sub ? 'Retiro ahorro ' + sub.nombre : 'Retiro ahorro'),
+            monto: monto, rubroId: rubroDestinoId, origen: 'ahorro', destino: null, fecha: fecha, moneda: moneda
+        }));
+    }
+
+    DB.ahorros.movimientos.push({ id: DB.ahorros.nid++, subrubroId: subrubroId, tipo: tipo, monto: monto, moneda: moneda, concepto: concepto, fecha: fecha, origen: origen, rubroDestinoId: rubroDestinoId, movGastoId: movGastoId });
     save();
     toast('✅ Ahorro guardado', 'success');
     gmRenderAhorroTab();
+    render();
 }
 
 async function gmEliminarAhorro(id) {
     var ok = await showConfirm('Eliminar movimiento', '¿Eliminar este movimiento?');
     if (!ok) return;
+    var mov = DB.ahorros.movimientos.find(function(m){ return m.id === id; });
+    if (mov && mov.movGastoId) {
+        DB.movimientos = DB.movimientos.filter(function(m){ return m.id !== mov.movGastoId; });
+    }
     DB.ahorros.movimientos = DB.ahorros.movimientos.filter(function(m){ return m.id !== id; });
     save();
     gmRenderAhorroTab();
+    render();
     toast('Eliminado', 'success');
 }
 
@@ -2750,12 +2796,13 @@ function gmRenderTablaHistorialAhorros() {
             + '<td style="padding:8px 6px;color:var(--text-muted);font-size:12px;">' + m.fecha + '</td>'
             + '<td style="padding:8px 6px;font-weight:600;">' + (sub?sub.nombre:'-') + '</td>'
             + '<td style="padding:8px 6px;color:var(--text-muted);">' + (m.concepto||'-') + '</td>'
+            + '<td style="padding:8px 6px;color:var(--text-muted);font-size:12px;">' + (m.rubroDestinoId ? '🏷️ ' + ((DB.rubros.find(function(r){return r.id===m.rubroDestinoId;})||{}).nombre||'-') : labelCuenta(m.origen)) + '</td>'
             + '<td style="padding:8px 6px;text-align:center;"><span class="badge" style="background:' + (mon==='USD'?'#dcfce7':'#dbeafe') + ';color:' + (mon==='USD'?'#166534':'#1e40af') + ';">' + (mon==='USD'?'USD':'$U') + '</span></td>'
             + '<td style="padding:8px 6px;text-align:right;color:var(--ingreso);font-weight:700;">' + (esI?fmtMoneda(m.monto, mon):'') + '</td>'
             + '<td style="padding:8px 6px;text-align:right;color:var(--gasto);font-weight:700;">' + (!esI?fmtMoneda(m.monto, mon):'') + '</td>'
             + '<td style="padding:8px 6px;text-align:center;"><button data-elim="' + m.id + '" style="background:none;border:1px solid var(--gasto);border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;color:var(--gasto);">✕</button></td></tr>';
     }).join('');
-    cont.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="border-bottom:2px solid var(--border);background:var(--bg-subtle);"><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Fecha</th><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Subrubro</th><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Concepto</th><th style="padding:8px 6px;text-align:center;color:var(--text-muted);">Moneda</th><th style="padding:8px 6px;text-align:right;color:var(--ingreso);">Ingreso</th><th style="padding:8px 6px;text-align:right;color:var(--gasto);">Retiro</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+    cont.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="border-bottom:2px solid var(--border);background:var(--bg-subtle);"><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Fecha</th><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Subrubro</th><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Concepto</th><th style="padding:8px 6px;text-align:left;color:var(--text-muted);">Origen</th><th style="padding:8px 6px;text-align:center;color:var(--text-muted);">Moneda</th><th style="padding:8px 6px;text-align:right;color:var(--ingreso);">Ingreso</th><th style="padding:8px 6px;text-align:right;color:var(--gasto);">Retiro</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
     cont.querySelectorAll('[data-elim]').forEach(function(btn){
         btn.addEventListener('click', function(){ gmEliminarAhorro(parseInt(btn.dataset.elim)); });
     });
@@ -3606,6 +3653,13 @@ function calcularMetricas(moneda) {
             }
         }
     });
+    (DB.ahorros.movimientos || []).forEach(m => {
+        if (!m.origen || saldos[m.origen] === undefined) return;
+        if ((m.moneda || 'UYU') !== moneda) return;
+        if (m.tipo === 'ingreso') saldos[m.origen] -= m.monto;
+        else if (m.tipo === 'retiro') saldos[m.origen] += m.monto;
+    });
+
     return { tIngresos, tGastos, tGastosEspeciales, saldos, mapaMensual };
 }
 
@@ -3653,9 +3707,13 @@ function render() {
     document.getElementById('view-mes-ingresos').textContent = fmtVista(ingresosMesActual);
     document.getElementById('view-mes-gastos').textContent   = fmtVista(gastosMesActual);
     if (vistaMoneda === 'USD') {
+        document.getElementById('view-budget-presup').textContent = '—';
+        document.getElementById('view-budget-presup').style.color = 'var(--text-muted)';
         document.getElementById('view-budget-general').textContent = '—';
         document.getElementById('view-budget-general').style.color = 'var(--text-muted)';
     } else {
+        document.getElementById('view-budget-presup').textContent = fmtVista(presupTotal);
+        document.getElementById('view-budget-presup').style.color = gastosMesActual > presupTotal ? 'var(--gasto)' : 'var(--primary)';
         document.getElementById('view-budget-general').textContent = fmtVista(restante);
         setValColor('view-budget-general', fmtVista(restante), restante >= 0);
     }
