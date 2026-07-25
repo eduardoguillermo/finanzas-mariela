@@ -279,6 +279,10 @@
             box-shadow: 0 0 0 3px rgba(147,197,253,.25);
         }
         input.field-error { border-color: var(--gasto); }
+        input[type="checkbox"] {
+            -webkit-appearance: checkbox; appearance: auto;
+            width: auto; accent-color: var(--primary);
+        }
 
         /* ── BUTTONS ── */
         button {
@@ -862,7 +866,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.19';
+const APP_VERSION = '0.20';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1152,10 +1156,18 @@ function gmMergeRubros(remoto) {
     if (DB.rubrosBorrados.length > 300) DB.rubrosBorrados = DB.rubrosBorrados.slice(-300);
 
     // 2) Propagar el borrado: si acá todavía existe un rubro que la papelera (local o recién unida) marca como borrado, sacarlo
+    // — salvo que el rubro local se haya creado/recreado DESPUÉS del borrado (ts de creación > ts del tombstone),
+    //   porque eso significa que alguien lo volvió a crear a propósito y no queremos comerlo de nuevo.
+    const tsBorrado = {};
+    DB.rubrosBorrados.forEach(b => {
+        const clave = (b.nombre || '').trim().toLowerCase();
+        const ts = b.ts || 0;
+        if (!tsBorrado[clave] || ts > tsBorrado[clave]) tsBorrado[clave] = ts;
+    });
     let eliminados = 0;
     DB.rubros = DB.rubros.filter(r => {
         const clave = (r.nombre || '').trim().toLowerCase();
-        if (papeleraLocal.has(clave)) {
+        if (papeleraLocal.has(clave) && (r.creadoTs || 0) < (tsBorrado[clave] || 0)) {
             Object.keys(DB.presupuestosHistoricos).forEach(k => { delete DB.presupuestosHistoricos[k][r.id]; });
             eliminados++;
             return false;
@@ -1170,7 +1182,7 @@ function gmMergeRubros(remoto) {
         const clave = (rr.nombre || '').trim().toLowerCase();
         if (!clave || existentes.has(clave) || papeleraLocal.has(clave)) return;
         const nuevoId = DB.nid++;
-        DB.rubros.push({ id: nuevoId, nombre: rr.nombre, tipo: rr.tipo || 'gasto' });
+        DB.rubros.push({ id: nuevoId, nombre: rr.nombre, tipo: rr.tipo || 'gasto', creadoTs: rr.creadoTs || Date.now() });
         existentes.add(clave);
         agregados++;
         // Traer también los límites mensuales que tenía configurados en el origen
@@ -2645,8 +2657,7 @@ function gmGuardarAhorro() {
     DB.ahorros.movimientos.push({ id: DB.ahorros.nid++, subrubroId: subrubroId, tipo: tipo, monto: monto, moneda: moneda, concepto: concepto, fecha: fecha, origen: origen, rubroDestinoId: rubroDestinoId, movGastoId: movGastoId });
     save();
     toast('✅ Ahorro guardado', 'success');
-    gmRenderAhorroTab();
-    render();
+    requestAnimationFrame(() => { gmRenderAhorroTab(); render(); });
 }
 
 async function gmEliminarAhorro(id) {
@@ -2658,9 +2669,8 @@ async function gmEliminarAhorro(id) {
     }
     DB.ahorros.movimientos = DB.ahorros.movimientos.filter(function(m){ return m.id !== id; });
     save();
-    gmRenderAhorroTab();
-    render();
     toast('Eliminado', 'success');
+    requestAnimationFrame(() => { gmRenderAhorroTab(); render(); });
 }
 
 function gmRefrescarModalSubrubros() {
@@ -3190,7 +3200,13 @@ function guardarRubro() {
         cancelarEdicionRubro();
     } else {
         targetRubroId = DB.nid++;
-        DB.rubros.push({ id: targetRubroId, nombre, tipo: tipoEl.value, especial: especialVal });
+        DB.rubros.push({ id: targetRubroId, nombre, tipo: tipoEl.value, especial: especialVal, creadoTs: Date.now() });
+        // Si había una papelera (tombstone) con este mismo nombre de un borrado anterior, la limpiamos:
+        // se está creando a propósito ahora, no queremos que un sync futuro lo vuelva a borrar.
+        if (Array.isArray(DB.rubrosBorrados) && DB.rubrosBorrados.length) {
+            const claveNueva = nombre.trim().toLowerCase();
+            DB.rubrosBorrados = DB.rubrosBorrados.filter(b => (b.nombre || '').trim().toLowerCase() !== claveNueva);
+        }
     }
 
     if (tipoEl.value === 'gasto') {
