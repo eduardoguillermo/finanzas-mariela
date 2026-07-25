@@ -867,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.21';
+const APP_VERSION = '0.22';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1374,12 +1374,14 @@ function gmParsearMailSantander(texto) {
 
 async function gmGmailBuscarGastos(token) {
     const gastos = [];
+    let candidatos = 0;
     const resp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(GM_GMAIL_QUERY)}&maxResults=20`,
         { headers: { Authorization: 'Bearer ' + token } });
     const data = await resp.json();
-    if (!data.messages || !data.messages.length) return gastos;
+    if (!data.messages || !data.messages.length) { gastos.candidatos = 0; return gastos; }
     for (const msg of data.messages) {
         if (gmGmailIsProcessed(msg.id)) continue;
+        candidatos++;
         const det = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`, { headers: { Authorization: 'Bearer ' + token } }).then(r => r.json());
         const texto = gmGmailExtraerTexto(det.payload);
         const datos = gmParsearMailSantander(texto);
@@ -1388,10 +1390,10 @@ async function gmGmailBuscarGastos(token) {
             datos._gmailId = msg.id;
             gastos.push(datos);
         } else {
-            // No matcheó el parser (formato inesperado): lo marcamos procesado igual para no reintentarlo en loop.
-            gmGmailMarkProcessed(msg.id);
+            console.log('[gm-gmail] mail candidato NO matcheó el parser. Texto extraído:', texto);
         }
     }
+    gastos.candidatos = candidatos;
     return gastos;
 }
 
@@ -1479,7 +1481,10 @@ async function gmGmailChequear(manual = false) {
         try {
             const gastos = await gmGmailBuscarGastos(token);
             if (!gastos.length) {
-                if (manual) gmGmailToast('✅ Sin mails pendientes.');
+                if (manual) {
+                    if (gastos.candidatos > 0) gmGmailToast(`⚠️ ${gastos.candidatos} mail(s) encontrado(s) pero ninguno matcheó el formato esperado. Mirá la consola (F12).`, true);
+                    else gmGmailToast('✅ Sin mails pendientes.');
+                }
                 return;
             }
             if (manual) gmGmailToast(`📬 ${gastos.length} gasto(s) nuevo(s) encontrado(s).`);
