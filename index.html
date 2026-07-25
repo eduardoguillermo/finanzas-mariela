@@ -867,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.22';
+const APP_VERSION = '0.23';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1296,7 +1296,7 @@ function gmDriveCargarArchivo(id, token) {
 // ════════════════════════════════════════════════════
 //  MÓDULO GMAIL · Detección automática mails Santander (débito)
 // ════════════════════════════════════════════════════
-const GM_GMAIL_QUERY          = 'from:notificaciones@santander.com.uy subject:"Aviso: uso de tarjeta" newer_than:30d';
+const GM_GMAIL_QUERY          = 'from:notificaciones@santander.com.uy newer_than:30d';
 const GM_GMAIL_PROCESSED_KEY  = 'fm_gmail_processed';
 const GM_GMAIL_PROCESSED_DIAS = 45; // > 30 días de la query, con margen
 const GM_SANTANDER_CUENTA     = 'debito1';
@@ -1375,9 +1375,20 @@ function gmParsearMailSantander(texto) {
 async function gmGmailBuscarGastos(token) {
     const gastos = [];
     let candidatos = 0;
+    try {
+        const perfil = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', { headers: { Authorization: 'Bearer ' + token } }).then(r => r.json());
+        console.log('[gm-gmail] Casilla autenticada:', perfil.emailAddress || perfil.error || perfil);
+    } catch(e) { console.log('[gm-gmail] No se pudo confirmar la casilla:', e.message); }
     const resp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(GM_GMAIL_QUERY)}&maxResults=20`,
         { headers: { Authorization: 'Bearer ' + token } });
     const data = await resp.json();
+    if (data.error) {
+        console.log('[gm-gmail] Error de la API de Gmail:', data.error);
+        gastos.errorApi = data.error.message || JSON.stringify(data.error);
+        gastos.candidatos = 0;
+        return gastos;
+    }
+    console.log('[gm-gmail] Query:', GM_GMAIL_QUERY, '· Resultados:', data.resultSizeEstimate, data.messages ? data.messages.length : 0);
     if (!data.messages || !data.messages.length) { gastos.candidatos = 0; return gastos; }
     for (const msg of data.messages) {
         if (gmGmailIsProcessed(msg.id)) continue;
@@ -1480,6 +1491,7 @@ async function gmGmailChequear(manual = false) {
     gmGetToken(async token => {
         try {
             const gastos = await gmGmailBuscarGastos(token);
+            if (gastos.errorApi) { if (manual) gmGmailToast('❌ Gmail API: ' + gastos.errorApi, true); return; }
             if (!gastos.length) {
                 if (manual) {
                     if (gastos.candidatos > 0) gmGmailToast(`⚠️ ${gastos.candidatos} mail(s) encontrado(s) pero ninguno matcheó el formato esperado. Mirá la consola (F12).`, true);
