@@ -594,9 +594,9 @@
         <div class="grid-dashboard">
             <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
             <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
-            <div class="card-bal"><h4>Presupuestado</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
-            <div class="card-bal"><h4>Restante</h4><p id="view-budget-restante">$0,00</p></div>
+            <div class="card-bal"><h4>Remanente</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
         </div>
+        <p id="view-gastos-especiales-nota" style="display:none; margin:2px 2px 6px; font-size:10px; color:var(--gasto);"></p>
         <div class="dash-label">💰 Tenencias</div>
         <div class="grid-dashboard">
             <div class="card-bal"><h4>Neto</h4><p id="view-balance">$0,00</p></div>
@@ -790,6 +790,10 @@
                             <input type="number" id="rubro-limite" step="1" min="0" placeholder="Sin límite">
                         </div>
                     </div>
+                    <div class="form-group" id="group-rubro-especial" style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                        <input type="checkbox" id="rubro-especial" style="width:auto;">
+                        <label for="rubro-especial" style="margin:0; font-size:11px; font-weight:400;">Rubro especial — no cuenta en gastos ni presupuesto del mes</label>
+                    </div>
                     <input type="hidden" id="rubro-edit-id" value="">
                     <div style="display:flex; gap:4px;">
                         <button id="btn-guardar-rubro" class="btn-primary btn-block">Guardar categoría</button>
@@ -857,7 +861,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.16';
+const APP_VERSION = '0.17';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -3117,27 +3121,29 @@ function guardarMovimiento() {
 //  GUARDAR RUBRO
 // ════════════════════════════════════════════════════
 function guardarRubro() {
-    const nombreEl  = document.getElementById('rubro-nombre');
-    const tipoEl    = document.getElementById('rubro-tipo');
-    const limiteEl  = document.getElementById('rubro-limite');
-    const editIdEl  = document.getElementById('rubro-edit-id');
-    const claveMes  = document.getElementById('rubro-mes-visor').value;
-    const nombre    = nombreEl.value.trim();
+    const nombreEl   = document.getElementById('rubro-nombre');
+    const tipoEl     = document.getElementById('rubro-tipo');
+    const limiteEl   = document.getElementById('rubro-limite');
+    const editIdEl   = document.getElementById('rubro-edit-id');
+    const especialEl = document.getElementById('rubro-especial');
+    const claveMes   = document.getElementById('rubro-mes-visor').value;
+    const nombre     = nombreEl.value.trim();
 
     if (!nombre) { nombreEl.classList.add('field-error'); nombreEl.focus(); toast('Ingresá un nombre.', 'error'); return; }
     nombreEl.classList.remove('field-error');
 
     const limiteVal   = tipoEl.value === 'gasto' ? (parseFloat(limiteEl.value) || 0) : 0;
+    const especialVal = especialEl.checked;
     let targetRubroId;
 
     if (editIdEl.value) {
         const rubro = DB.rubros.find(r => r.id == editIdEl.value);
-        if (rubro) { rubro.nombre = nombre; rubro.tipo = tipoEl.value; }
+        if (rubro) { rubro.nombre = nombre; rubro.tipo = tipoEl.value; rubro.especial = especialVal; }
         targetRubroId = editIdEl.value;
         cancelarEdicionRubro();
     } else {
         targetRubroId = DB.nid++;
-        DB.rubros.push({ id: targetRubroId, nombre, tipo: tipoEl.value });
+        DB.rubros.push({ id: targetRubroId, nombre, tipo: tipoEl.value, especial: especialVal });
     }
 
     if (tipoEl.value === 'gasto') {
@@ -3145,7 +3151,7 @@ function guardarRubro() {
         DB.presupuestosHistoricos[claveMes][targetRubroId] = limiteVal;
     }
 
-    nombreEl.value = ''; limiteEl.value = '';
+    nombreEl.value = ''; limiteEl.value = ''; especialEl.checked = false;
     toast('Categoría guardada.', 'success');
     save(); render();
 }
@@ -3153,6 +3159,7 @@ function guardarRubro() {
 function cancelarEdicionRubro() {
     document.getElementById('rubro-nombre').value    = '';
     document.getElementById('rubro-limite').value    = '';
+    document.getElementById('rubro-especial').checked = false;
     document.getElementById('rubro-edit-id').value   = '';
     document.getElementById('btn-guardar-rubro').textContent = 'Guardar categoría';
     document.getElementById('btn-cancelar-rubro').style.display = 'none';
@@ -3166,6 +3173,7 @@ function editarRubro(id) {
     document.getElementById('rubro-nombre').value   = rubro.nombre;
     document.getElementById('rubro-tipo').value     = rubro.tipo;
     document.getElementById('rubro-limite').value   = getLimiteHistorico(claveMes, rubro.id) || '';
+    document.getElementById('rubro-especial').checked = !!rubro.especial;
     document.getElementById('rubro-edit-id').value  = rubro.id;
     alternarInputPresupuesto();
     document.getElementById('btn-guardar-rubro').textContent      = 'Actualizar';
@@ -3568,11 +3576,15 @@ function calcularMetricas(moneda) {
     let tIngresos = 0, tGastos = 0;
     const mapaMensual = {};
 
+    let tGastosEspeciales = 0;
     DB.movimientos.forEach(m => {
         if ((m.moneda || 'UYU') !== moneda) return;
         const tipo = getTipoMov(m);
+        const rubroMov = DB.rubros.find(r => r.id === m.rubroId);
+        const esEspecial = tipo === 'gasto' && rubroMov && rubroMov.especial;
         if (tipo === 'ingreso') tIngresos += m.monto;
-        else if (tipo === 'gasto') tGastos += m.monto;
+        else if (tipo === 'gasto' && !esEspecial) tGastos += m.monto;
+        else if (esEspecial) tGastosEspeciales += m.monto;
 
         if (tipo === 'transferencia') {
             if (saldos[m.origen] !== undefined) saldos[m.origen] -= m.monto;
@@ -3583,16 +3595,18 @@ function calcularMetricas(moneda) {
             }
             const clave = claveMesDeISO(m.fecha);
             if (!mapaMensual[clave]) {
-                mapaMensual[clave] = { etiqueta: etiquetaMes(clave), ingresos: 0, gastos: 0, desgloseRubros: {} };
+                mapaMensual[clave] = { etiqueta: etiquetaMes(clave), ingresos: 0, gastos: 0, gastosEspeciales: 0, desgloseRubros: {} };
             }
             if (tipo === 'ingreso') { mapaMensual[clave].ingresos += m.monto; }
-            else {
+            else if (esEspecial) {
+                mapaMensual[clave].gastosEspeciales += m.monto;
+            } else {
                 mapaMensual[clave].gastos += m.monto;
                 mapaMensual[clave].desgloseRubros[m.rubroId] = (mapaMensual[clave].desgloseRubros[m.rubroId] || 0) + m.monto;
             }
         }
     });
-    return { tIngresos, tGastos, saldos, mapaMensual };
+    return { tIngresos, tGastos, tGastosEspeciales, saldos, mapaMensual };
 }
 
 // ════════════════════════════════════════════════════
@@ -3628,24 +3642,31 @@ function render() {
     let presupTotal = 0;
     const claveMesActual = obtenerClaveMesActual();
     if (vistaMoneda === 'UYU') {
-        DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
+        DB.rubros.filter(r => r.tipo === 'gasto' && !r.especial).forEach(r => {
             presupTotal += getLimiteHistorico(claveMesActual, r.id);
         });
     }
-    const gastosMesActual   = metricas.mapaMensual[claveMesActual]?.gastos   || 0;
-    const ingresosMesActual = metricas.mapaMensual[claveMesActual]?.ingresos || 0;
-    const restante          = presupTotal - gastosMesActual;
+    const gastosMesActual      = metricas.mapaMensual[claveMesActual]?.gastos           || 0;
+    const gastosEspecialesMes  = metricas.mapaMensual[claveMesActual]?.gastosEspeciales || 0;
+    const ingresosMesActual    = metricas.mapaMensual[claveMesActual]?.ingresos         || 0;
+    const restante             = presupTotal - gastosMesActual;
     document.getElementById('view-mes-ingresos').textContent = fmtVista(ingresosMesActual);
     document.getElementById('view-mes-gastos').textContent   = fmtVista(gastosMesActual);
     if (vistaMoneda === 'USD') {
         document.getElementById('view-budget-general').textContent = '—';
         document.getElementById('view-budget-general').style.color = 'var(--text-muted)';
-        document.getElementById('view-budget-restante').textContent = '—';
-        document.getElementById('view-budget-restante').style.color = 'var(--text-muted)';
     } else {
-        document.getElementById('view-budget-general').textContent = fmtVista(presupTotal);
-        document.getElementById('view-budget-general').style.color = gastosMesActual > presupTotal ? 'var(--gasto)' : 'var(--primary)';
-        setValColor('view-budget-restante', fmtVista(restante), restante >= 0);
+        document.getElementById('view-budget-general').textContent = fmtVista(restante);
+        setValColor('view-budget-general', fmtVista(restante), restante >= 0);
+    }
+    const notaEspecialEl = document.getElementById('view-gastos-especiales-nota');
+    if (notaEspecialEl) {
+        if (vistaMoneda === 'UYU' && gastosEspecialesMes > 0) {
+            notaEspecialEl.textContent = '+ ' + fmtVista(gastosEspecialesMes) + ' en gastos especiales, no incluidos arriba';
+            notaEspecialEl.style.display = '';
+        } else {
+            notaEspecialEl.style.display = 'none';
+        }
     }
 
     // ── Selects de cuentas ──
@@ -3691,7 +3712,7 @@ function render() {
             const div = document.createElement('div');
             div.className = 'rub-row';
             div.innerHTML = `
-                <span><strong class="rub-nombre-inline" data-rubro-id="${r.id}" title="Doble clic para renombrar" style="font-size:12px;cursor:text;">${r.nombre}</strong><span class="badge ${r.tipo}" style="margin-left:4px;">${r.tipo === 'gasto' ? 'G' : 'I'}</span>${txtLim}</span>
+                <span><strong class="rub-nombre-inline" data-rubro-id="${r.id}" title="Doble clic para renombrar" style="font-size:12px;cursor:text;">${r.nombre}</strong><span class="badge ${r.tipo}" style="margin-left:4px;">${r.tipo === 'gasto' ? 'G' : 'I'}</span>${r.especial ? '<span style="margin-left:4px;background:#f0997b;color:#4a1b0c;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;">Especial</span>' : ''}${txtLim}</span>
                 <div style="display:flex; gap:2px;">
                     <button class="btn-icon" data-edit="${r.id}" title="Editar">✏️</button>
                     <button class="btn-icon danger" data-del="${r.id}" title="Eliminar">🗑️</button>
