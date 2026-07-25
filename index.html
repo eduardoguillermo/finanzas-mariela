@@ -565,6 +565,7 @@
         </div>
 
         <div class="menu-wrap" style="display:flex;align-items:center;gap:6px;">
+            <button id="btn-gmail-check" class="btn-icon" title="Chequear mails de Santander" onclick="gmGmailChequear(true);" style="font-size:14px;border:1px solid #ec0000;border-radius:var(--radius-sm);padding:5px 10px;background:#ec0000;color:white;white-space:nowrap;">📧 Chequear mails</button>
             <button id="btn-salir-header" class="btn-icon" title="Guardar y salir" onclick="gmSalir();" style="font-size:14px;border:1px solid #334155;border-radius:var(--radius-sm);padding:5px 10px;background:#334155;color:white;white-space:nowrap;">🚪 Guardar y salir</button>
             <button id="btn-menu-toggle" class="btn-icon" title="Más opciones" style="font-size:17px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;background:var(--bg-subtle);">☰</button>
             <div id="dropdown-panel" class="dropdown-panel">
@@ -866,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.20';
+const APP_VERSION = '0.21';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -920,11 +921,11 @@ function gmInsertarAyudas() {
 }
 
 // ── Google Drive (desactivado hasta que el usuario configure Client ID) ─────
-const GM_DRIVE_SCOPE     = 'https://www.googleapis.com/auth/drive.file';
+const GM_DRIVE_SCOPE     = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.readonly';
 const GM_GTOKEN_KEY      = 'fm_gtoken';
 const GM_GTOKEN_EXP_KEY  = 'fm_gtoken_exp';
 const GM_GTOKEN_SCOPE_KEY     = 'fm_gtoken_scope_v';
-const GM_GTOKEN_SCOPE_VERSION = '2'; // v2: carpeta visible "FinanzasPro" (drive.file) en vez de appDataFolder oculta
+const GM_GTOKEN_SCOPE_VERSION = '3'; // v3: + gmail.readonly para detección de mails Santander
 const GM_CLIENT_ID_KEY   = 'fm_drive_client_id';
 const GM_DRIVE_FOLDER    = 'FinanzasMariela';
 let gmGToken = null;
@@ -1292,7 +1293,206 @@ function gmDriveCargarArchivo(id, token) {
     .catch(e => { toast('Error al restaurar: '+e.message, 'error'); });
 }
 
-// ── Snapshots locales ─────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════
+//  MÓDULO GMAIL · Detección automática mails Santander (débito)
+// ════════════════════════════════════════════════════
+const GM_GMAIL_QUERY          = 'from:notificaciones@santander.com.uy subject:"Aviso: uso de tarjeta" newer_than:30d';
+const GM_GMAIL_PROCESSED_KEY  = 'fm_gmail_processed';
+const GM_GMAIL_PROCESSED_DIAS = 45; // > 30 días de la query, con margen
+const GM_SANTANDER_CUENTA     = 'debito1';
+
+function gmEsMovil() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
+
+function gmGmailGetProcessed() {
+    let lista;
+    try { lista = JSON.parse(localStorage.getItem(GM_GMAIL_PROCESSED_KEY)) || []; } catch(e) { return []; }
+    const ahora = Date.now();
+    const limite = ahora - GM_GMAIL_PROCESSED_DIAS * 86400000;
+    return lista.filter(x => x.ts >= limite);
+}
+function gmGmailMarkProcessed(id) {
+    const lista = gmGmailGetProcessed();
+    if (!lista.some(x => x.id === id)) {
+        lista.push({ id, ts: Date.now() });
+        try { localStorage.setItem(GM_GMAIL_PROCESSED_KEY, JSON.stringify(lista)); } catch(e) {}
+    }
+}
+function gmGmailIsProcessed(id) { return gmGmailGetProcessed().some(x => x.id === id); }
+
+function gmGmailDecodeBody(encoded) {
+    try {
+        const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+    } catch(e) { return ''; }
+}
+function gmGmailExtraerTexto(payload) {
+    if (!payload) return '';
+    if (payload.body && payload.body.data) return gmGmailDecodeBody(payload.body.data);
+    if (payload.parts) {
+        for (const part of payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body && part.body.data)
+                return gmGmailDecodeBody(part.body.data);
+        }
+        for (const part of payload.parts) {
+            if (part.mimeType === 'text/html' && part.body && part.body.data)
+                return gmGmailDecodeBody(part.body.data).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (part.parts) { const sub = gmGmailExtraerTexto(part); if (sub) return sub; }
+        }
+    }
+    return '';
+}
+function gmGmailHeader(payload, nombre) {
+    if (!payload || !payload.headers) return '';
+    const h = payload.headers.find(x => x.name && x.name.toLowerCase() === nombre.toLowerCase());
+    return h ? h.value : '';
+}
+
+// Formato real del mail (Santander UY, "Aviso: uso de tarjeta de débito"):
+// "...tarjeta VISA terminada en 7928 Importe UYU 216,57 Establecimento PUNTA DEL ES/LAVOMAT ATLANTICO VIS3 Fecha y hora 25/07/2026 17:04:47"
+// Nota: "Establecimento" es el typo real que usa el banco — se contempla también "Establecimiento" por si lo corrigen.
+function gmParsearMailSantander(texto) {
+    if (!texto) return null;
+    const t = texto.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const esSantander = /tarjeta/i.test(t) && /Importe/i.test(t) && /Fecha y hora/i.test(t);
+    if (!esSantander) return null;
+    const resultado = { moneda: 'UYU', monto: null, comercio: '', fecha: '', hora: '', tarjeta: '' };
+    const rImporte = /Importe\s*(?:\n\s*)?([A-Z]{3})\s?([\d.,]+)/i.exec(t);
+    if (rImporte) { resultado.moneda = rImporte[1].toUpperCase(); resultado.monto = parseFloat(rImporte[2].replace(/\./g,'').replace(',','.')); }
+    const rComercio = /Establecim(?:i)?ento\s*(?:\n\s*)?([^\n]+?)(?=\s*Fecha y hora|\n|$)/i.exec(t);
+    if (rComercio) resultado.comercio = rComercio[1].trim();
+    const rFechaHora = /Fecha y hora\s*(?:\n\s*)?(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}:\d{2})/i.exec(t);
+    if (rFechaHora) { resultado.fecha = `${rFechaHora[3]}-${rFechaHora[2]}-${rFechaHora[1]}`; resultado.hora = rFechaHora[4]; }
+    const rTarjeta = /terminada en (\d{4})/i.exec(t);
+    if (rTarjeta) resultado.tarjeta = rTarjeta[1];
+    return (resultado.monto && resultado.fecha) ? resultado : null;
+}
+
+async function gmGmailBuscarGastos(token) {
+    const gastos = [];
+    const resp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(GM_GMAIL_QUERY)}&maxResults=20`,
+        { headers: { Authorization: 'Bearer ' + token } });
+    const data = await resp.json();
+    if (!data.messages || !data.messages.length) return gastos;
+    for (const msg of data.messages) {
+        if (gmGmailIsProcessed(msg.id)) continue;
+        const det = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`, { headers: { Authorization: 'Bearer ' + token } }).then(r => r.json());
+        const texto = gmGmailExtraerTexto(det.payload);
+        const datos = gmParsearMailSantander(texto);
+        if (datos) {
+            if (!datos.fecha && det.internalDate) datos.fecha = fechaISOLocal(new Date(parseInt(det.internalDate)));
+            datos._gmailId = msg.id;
+            gastos.push(datos);
+        } else {
+            // No matcheó el parser (formato inesperado): lo marcamos procesado igual para no reintentarlo en loop.
+            gmGmailMarkProcessed(msg.id);
+        }
+    }
+    return gastos;
+}
+
+function gmGmailYaRegistrado(datos) {
+    const needle = (datos.comercio || '').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10);
+    const fecha = datos.fecha || '';
+    const monto = datos.monto || 0;
+    return DB.movimientos.some(m => Math.abs(m.monto - monto) < 0.01 && m.fecha === fecha &&
+        (needle === '' || (m.concepto || '').toLowerCase().replace(/[^a-z0-9]/g, '').includes(needle)));
+}
+
+let gmGmailQueue = [];
+let gmGmailIdx   = 0;
+
+function gmGmailMostrarSiguiente() {
+    if (gmGmailIdx >= gmGmailQueue.length) return;
+    const datos = gmGmailQueue[gmGmailIdx];
+    if (gmGmailYaRegistrado(datos)) {
+        if (datos._gmailId) gmGmailMarkProcessed(datos._gmailId);
+        gmGmailIdx++;
+        if (gmGmailIdx < gmGmailQueue.length) setTimeout(gmGmailMostrarSiguiente, 200);
+        return;
+    }
+    gmAbrirModalGmail(datos);
+}
+
+function gmAbrirModalGmail(datos) {
+    document.getElementById('gm-gmail-overlay')?.remove();
+    const rubrosOpts = DB.rubros.filter(r => !r.especial).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    const ov = document.createElement('div');
+    ov.id = 'gm-gmail-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.innerHTML = `<div style="background:white;border-radius:10px;padding:20px;min-width:300px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:6px;">🏦 Mail Santander <span style="font-size:10px;background:#ec0000;color:white;padding:2px 7px;border-radius:20px;font-weight:600;">débito ${datos.tarjeta ? '·'+datos.tarjeta : ''}</span></h3>
+        <p style="font-size:11px;color:var(--text-muted);margin:0 0 14px;">Revisá y confirmá antes de guardar.</p>
+        <div class="form-group"><label>Concepto</label><input type="text" id="gm-gmail-concepto" value="${(datos.comercio||'').replace(/"/g,'&quot;')}"></div>
+        <div class="form-group"><label>Monto (${datos.moneda})</label><input type="number" step="0.01" id="gm-gmail-monto" value="${datos.monto}"></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="gm-gmail-fecha" value="${datos.fecha}"></div>
+        <div class="form-group"><label>Rubro</label><select id="gm-gmail-rubro"><option value="">Elegir…</option>${rubrosOpts}</select></div>
+        <div class="form-group"><label>Cuenta</label><select id="gm-gmail-cuenta">${getCuentas().map(c => `<option value="${c.key}" ${c.key===GM_SANTANDER_CUENTA?'selected':''}>${c.icon} ${c.label}</option>`).join('')}</select></div>
+        <div class="modal-actions" style="margin-top:14px;">
+            <button class="btn-secondary btn-sm" onclick="gmGmailDescartar('${datos._gmailId}', false)">Descartar</button>
+            <button class="btn-secondary btn-sm" style="color:var(--gasto);" onclick="gmGmailDescartar('${datos._gmailId}', true)">Descartar definitivamente</button>
+            <button class="btn-primary btn-sm" onclick="gmGmailGuardarDesdeMail('${datos._gmailId}')">✅ Guardar</button>
+        </div>
+    </div>`;
+    document.body.appendChild(ov);
+}
+function gmGmailCerrarModal() { document.getElementById('gm-gmail-overlay')?.remove(); }
+function gmGmailDescartar(gmailId, definitivo) {
+    if (definitivo && gmailId) gmGmailMarkProcessed(gmailId);
+    gmGmailCerrarModal();
+    gmGmailIdx++;
+    if (gmGmailIdx < gmGmailQueue.length) setTimeout(gmGmailMostrarSiguiente, 200);
+}
+function gmGmailGuardarDesdeMail(gmailId) {
+    const concepto = document.getElementById('gm-gmail-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('gm-gmail-monto').value);
+    const fecha = document.getElementById('gm-gmail-fecha').value;
+    const rubroId = parseInt(document.getElementById('gm-gmail-rubro').value);
+    const origen = document.getElementById('gm-gmail-cuenta').value;
+    if (!concepto || isNaN(monto) || monto <= 0 || isNaN(rubroId) || !fecha) {
+        toast('Completá todos los campos.', 'error'); return;
+    }
+    DB.movimientos.push(gmTouch({ id: DB.nid++, concepto, monto, rubroId, origen, destino: null, fecha, moneda: 'UYU' }));
+    save(); render();
+    if (gmailId) gmGmailMarkProcessed(gmailId);
+    toast('✅ Gasto de Santander guardado', 'success');
+    gmGmailCerrarModal();
+    gmGmailIdx++;
+    if (gmGmailIdx < gmGmailQueue.length) setTimeout(gmGmailMostrarSiguiente, 300);
+}
+
+function gmGmailToast(msg, esError = false) {
+    toast(msg, esError ? 'error' : 'success');
+}
+
+async function gmGmailChequear(manual = false) {
+    if (document.getElementById('gm-gmail-overlay')) return; // no pisar la cola mientras hay un modal abierto
+    if (gmEsMovil() && !manual) return; // en mobile, solo chequeo manual
+    if (manual) gmGmailToast('🔄 Revisando mails de Santander...');
+    const clientId = gmGetClientId();
+    if (!clientId) { if (manual) gmGmailToast('⚠️ Configurá el Client ID de Google en Cuentas primero.', true); return; }
+    gmGetToken(async token => {
+        try {
+            const gastos = await gmGmailBuscarGastos(token);
+            if (!gastos.length) {
+                if (manual) gmGmailToast('✅ Sin mails pendientes.');
+                return;
+            }
+            if (manual) gmGmailToast(`📬 ${gastos.length} gasto(s) nuevo(s) encontrado(s).`);
+            gmGmailQueue = gastos;
+            gmGmailIdx = 0;
+            setTimeout(gmGmailMostrarSiguiente, manual ? 500 : 3000);
+        } catch(e) {
+            if (manual) gmGmailToast('❌ Error al revisar mails: ' + e.message, true);
+        }
+    });
+}
+
+
 const GM_BKUP_KEY = 'fm_backups';
 const GM_BKUP_MAX = 10;
 function gmCargarSnapshots() { try { return JSON.parse(localStorage.getItem(GM_BKUP_KEY)) || []; } catch(e) { return []; } }
@@ -4246,6 +4446,7 @@ window.addEventListener('DOMContentLoaded', function() {
     initMenuDropdown();
     initMesesVisor();
     gmInsertarAyudas();
+    setTimeout(() => { if (!DEV_MODE) gmGmailChequear(false); }, 4000);
 
     document.getElementById('mov-tipo-flujo').addEventListener('change', alternarFormCarga);
     document.getElementById('rubro-tipo').addEventListener('change', alternarInputPresupuesto);
