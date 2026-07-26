@@ -609,6 +609,7 @@
             <div class="card-bal" id="grp-debito1"><h4 id="label-hdr-debito1">Banco 1</h4><p id="view-bal-debito1">$0,00</p></div>
             <div class="card-bal" id="grp-debito2"><h4 id="label-hdr-debito2">Banco 2</h4><p id="view-bal-debito2">$0,00</p></div>
             <div class="card-bal" id="grp-debito3" style="display:none"><h4 id="label-hdr-debito3">Banco 3</h4><p id="view-bal-debito3">$0,00</p></div>
+            <div class="card-bal"><h4>🎁 Especiales (mes)</h4><p id="view-especiales-historico" style="color:var(--gasto)">$0,00</p></div>
         </div>
     </div>
     <span id="sep-d2" style="display:none;"></span>
@@ -866,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.27';
+const APP_VERSION = '0.28';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -3992,6 +3993,8 @@ function render() {
     }
     const gastosMesActual      = metricas.mapaMensual[claveMesActual]?.gastos           || 0;
     const gastosEspecialesMes  = metricas.mapaMensual[claveMesActual]?.gastosEspeciales || 0;
+    const especialesHistEl = document.getElementById('view-especiales-historico');
+    if (especialesHistEl) especialesHistEl.textContent = fmtVista(gastosEspecialesMes);
     const ingresosMesActual    = metricas.mapaMensual[claveMesActual]?.ingresos         || 0;
     const restante             = presupTotal - gastosMesActual;
     document.getElementById('view-mes-gastos').textContent   = fmtVista(gastosMesActual);
