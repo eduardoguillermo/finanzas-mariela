@@ -867,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.28';
+const APP_VERSION = '0.29';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -4033,13 +4033,13 @@ function render() {
     const rubrosGasto   = [...DB.rubros].filter(r => r.tipo === 'gasto').sort((a,b) => a.nombre.localeCompare(b.nombre));
     const rubrosIngreso = [...DB.rubros].filter(r => r.tipo === 'ingreso').sort((a,b) => a.nombre.localeCompare(b.nombre));
     filtroEl.innerHTML = `
-        <option value="all">🔍 Todos</option>
-        <option value="gasto">🔻 Gastos</option>
-        <option value="ingreso">🔺 Ingresos</option>
-        <option value="transferencia">⇅ Transferencias</option>
-        ${rubrosGasto.length   ? `<optgroup label="── Rubros gasto">${rubrosGasto.map(r   => `<option value="r-${r.id}">📁 ${r.nombre}</option>`).join('')}</optgroup>` : ''}
-        ${rubrosIngreso.length ? `<optgroup label="── Rubros ingreso">${rubrosIngreso.map(r => `<option value="r-${r.id}">📁 ${r.nombre}</option>`).join('')}</optgroup>` : ''}
-        <optgroup label="── Cuentas">${cuentas.map(c => `<option value="f-${c.key}">${c.icon} ${c.label}</option>`).join('')}</optgroup>
+        <option value="all">Todos 🔍</option>
+        <option value="gasto">Gastos 🔻</option>
+        <option value="ingreso">Ingresos 🔺</option>
+        <option value="transferencia">Transferencias ⇅</option>
+        ${rubrosGasto.length   ? `<optgroup label="── Rubros gasto">${rubrosGasto.map(r   => `<option value="r-${r.id}">${r.nombre} 📁</option>`).join('')}</optgroup>` : ''}
+        ${rubrosIngreso.length ? `<optgroup label="── Rubros ingreso">${rubrosIngreso.map(r => `<option value="r-${r.id}">${r.nombre} 📁</option>`).join('')}</optgroup>` : ''}
+        <optgroup label="── Cuentas">${cuentas.map(c => `<option value="f-${c.key}">${c.label} ${c.icon}</option>`).join('')}</optgroup>
     `;
     filtroEl.value = prevFiltro;
 
