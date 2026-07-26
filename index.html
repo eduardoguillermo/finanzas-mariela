@@ -866,7 +866,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.26';
+const APP_VERSION = '0.27';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1295,7 +1295,7 @@ function gmDriveCargarArchivo(id, token) {
 // ════════════════════════════════════════════════════
 //  MÓDULO GMAIL · Detección automática mails Santander (débito)
 // ════════════════════════════════════════════════════
-const GM_GMAIL_QUERY          = 'from:notificaciones@santander.com.uy newer_than:30d';
+const GM_GMAIL_QUERY          = 'from:notificaciones@santander.com.uy subject:"uso de tarjeta" newer_than:30d';
 const GM_GMAIL_PROCESSED_KEY  = 'fm_gmail_processed';
 const GM_GMAIL_PROCESSED_DIAS = 45; // > 30 días de la query, con margen
 const GM_SANTANDER_CUENTA     = 'debito1';
