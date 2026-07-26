@@ -867,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.30';
+const APP_VERSION = '1.0';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -3434,39 +3434,14 @@ function guardarMovimiento() {
 
     const fecha = fechaEl.value || hoyISO();
     const moneda = document.getElementById('mov-moneda')?.value || 'UYU';
-
-    if (flujo === 'transferencia') {
-        const origen  = document.getElementById('mov-transf-origen').value;
-        const destino = document.getElementById('mov-transf-destino').value;
-        if (origen === destino) { toast('Origen y destino no pueden ser iguales.', 'error'); return; }
-        DB.movimientos.push(gmTouch({
-            id: DB.nid++, concepto: conceptoEl.value.trim() || 'Transferencia',
-            monto, rubroId: 0, origen, destino, fecha, moneda
-        }));
-    } else {
-        const rubroId = parseInt(document.getElementById('mov-rubro').value);
-        const origen  = document.getElementById('mov-origen').value;
-        if (isNaN(rubroId)) { toast('Seleccioná un rubro.', 'error'); return; }
-        const notas = (document.getElementById('mov-notas')?.value||'').trim();
-        DB.movimientos.push(gmTouch({
-            id: DB.nid++, concepto: conceptoEl.value.trim(),
-            monto, rubroId, origen, destino: null, fecha, moneda,
-            notas: notas || undefined
-        }));
-    }
-
-    conceptoEl.value = '';
-    montoEl.value    = '';
-    const notasEl = document.getElementById('mov-notas'); if(notasEl) notasEl.value = '';
-    // Mantener fecha para carga rápida de múltiples asientos
-
     const btn = document.getElementById('btn-guardar-movimiento');
     const editId = btn.dataset.editId ? parseInt(btn.dataset.editId) : null;
+
     if (editId) {
-        // Modo edición: actualizar movimiento existente
-        const idx = DB.movimientos.findIndex(m=>m.id===editId);
+        // ── Modo edición: actualizar el movimiento existente, SIN crear uno nuevo ──
+        const idx = DB.movimientos.findIndex(m => m.id === editId);
         if (idx !== -1) {
-            const notas2 = (document.getElementById('mov-notas')?.value||'').trim();
+            const notas2 = (document.getElementById('mov-notas')?.value || '').trim();
             DB.movimientos[idx] = gmTouch(Object.assign({}, DB.movimientos[idx], {
                 concepto: conceptoEl.value.trim(), monto, fecha, moneda,
                 notas: notas2 || undefined
@@ -3481,10 +3456,36 @@ function guardarMovimiento() {
         btn.style.background = '';
         toast('Movimiento actualizado.', 'success');
     } else {
+        // ── Modo creación: agregar movimiento nuevo ──
+        if (flujo === 'transferencia') {
+            const origen  = document.getElementById('mov-transf-origen').value;
+            const destino = document.getElementById('mov-transf-destino').value;
+            if (origen === destino) { toast('Origen y destino no pueden ser iguales.', 'error'); return; }
+            DB.movimientos.push(gmTouch({
+                id: DB.nid++, concepto: conceptoEl.value.trim() || 'Transferencia',
+                monto, rubroId: 0, origen, destino, fecha, moneda
+            }));
+        } else {
+            const rubroId = parseInt(document.getElementById('mov-rubro').value);
+            const origen  = document.getElementById('mov-origen').value;
+            if (isNaN(rubroId)) { toast('Seleccioná un rubro.', 'error'); return; }
+            const notas = (document.getElementById('mov-notas')?.value||'').trim();
+            DB.movimientos.push(gmTouch({
+                id: DB.nid++, concepto: conceptoEl.value.trim(),
+                monto, rubroId, origen, destino: null, fecha, moneda,
+                notas: notas || undefined
+            }));
+        }
         btn.textContent = '✓ Guardado';
         btn.style.background = 'var(--ingreso)';
         setTimeout(() => { btn.textContent = '✓ Asentar registro'; btn.style.background = ''; }, 1000);
     }
+
+    conceptoEl.value = '';
+    montoEl.value    = '';
+    const notasEl = document.getElementById('mov-notas'); if(notasEl) notasEl.value = '';
+    // Mantener fecha para carga rápida de múltiples asientos
+
     save();
     resetPaginacion();
     render();
