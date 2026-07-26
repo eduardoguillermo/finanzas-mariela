@@ -245,7 +245,7 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <h1>💵 Finanzas Mariela</h1>
-    <p>Manual de usuario · v0.10</p>
+    <p>Manual de usuario · v1.0</p>
   </div>
 
   <div class="section-label">Introducción</div>
@@ -270,6 +270,7 @@
   <a href="#historial">📅 Historial mensual</a>
 
   <div class="section-label">Funciones especiales</div>
+  <a href="#santander">🏦 Mails de Santander</a>
   <a href="#backup">💾 Backup y sincronización</a>
   <a href="#salir">🚪 Salir</a>
   <a href="#movil">📱 Uso en el celular</a>
@@ -285,10 +286,11 @@
     <h1>💵 Finanzas Mariela</h1>
     <p>Manual completo de usuario — Registro diario de gastos e ingresos</p>
     <div class="hero-badges">
-      <span class="badge badge-green">✓ v0.10</span>
+      <span class="badge badge-green">✓ v1.0</span>
       <span class="badge badge-blue">✓ Sin servidor</span>
       <span class="badge badge-amber">✓ Datos locales</span>
       <span class="badge badge-purple">✓ Instancia aislada</span>
+      <span class="badge badge-red">✓ Detección Santander</span>
     </div>
   </div>
 
@@ -315,7 +317,7 @@
         <div class="section-subtitle">Cómo está organizada la pantalla</div>
       </div>
     </div>
-    <p>Arriba de todo, el <b>dashboard</b> muestra dos filas de cajitas: <b>Mes actual</b> (Ingresos, Gastos, Presupuestado, Restante) y <b>Bancos y efectivo</b> (Neto, Efectivo y cada cuenta configurada).</p>
+    <p>Arriba de todo, el <b>dashboard</b> muestra dos filas de cajitas: <b>Mes actual</b> (Presupuesto, Gastos, Restante) y <b>Tenencias</b> (Neto, Efectivo, cada cuenta configurada y 🎁 Especiales del mes).</p>
     <p>Debajo, <b>4 pestañas de nivel principal</b> reemplazan al viejo panel izquierdo con tabs:</p>
     <div class="dashboard-grid">
       <div class="dash-card" style="color:var(--primary);">
@@ -337,6 +339,7 @@
     </div>
     <p>Arriba a la derecha, el ícono <b>☰</b> reemplaza al viejo pie de página: ahí están Ayuda, Exportar/Importar, Drive, Snapshots locales, Gastos por rubro, Historial mensual y Salir.</p>
     <div class="info">ℹ️ Todos los botones de ayuda (🟡 ?) que ves junto a los títulos te traen directo a la sección correspondiente de este manual.</div>
+    <div class="note">📝 "Ingresos" ya no se muestra como cajita arriba (el ingreso real es lo que se acredita en el banco al cobrar — se ve reflejado en el saldo de la cuenta, no hace falta un total aparte). La tarjeta <b>🎁 Especiales (mes)</b> es tocable: abre el detalle de cada gasto especial del mes con su fecha, rubro y monto.</div>
     <h2>Selector $U / USD</h2>
     <p>En el header hay un switch <b>$U / USD</b> que cambia la moneda de visualización de Ahorros y otros totales. No convierte montos: cada registro guarda su propia moneda, y el switch simplemente filtra/formatea la vista.</p>
   </section>
@@ -371,6 +374,7 @@
       </div>
     </div>
     <p>Filtrá por rango de <b>fechas</b> o por texto/rubro con el selector avanzado. El contador inferior muestra la cantidad de asientos y el total filtrado.</p>
+    <div class="tip">💡 En el desplegable de filtro podés tipear la primera letra del rubro o cuenta para saltar directo a esa opción (el texto va antes del ícono, para que funcione el salto por teclado del navegador).</div>
     <p>Al ocupar todo el ancho de la pantalla (ya no comparte columna con nada más), entran más movimientos visibles sin scrollear.</p>
     <h2>Impresión / PDF</h2>
     <p>El botón 🖨️ genera una vista de impresión del libro diario tal como está filtrado en pantalla.</p>
@@ -438,10 +442,19 @@
     </div>
     <h2>Crear o editar un rubro</h2>
     <p>Definí un <b>nombre</b>, el <b>tipo</b> (gasto o ingreso) y, opcionalmente, un <b>límite mensual</b> en pesos. Los rubros con límite aparecen con card de seguimiento en la pestaña Presupuesto.</p>
+    <h2>🎁 Rubro especial</h2>
+    <p>Marcá el checkbox <b>"Rubro especial"</b> para gastos no habituales que no querés que compitan con tu presupuesto normal (ej: reparaciones grandes, gastos médicos puntuales). Un gasto especial:</p>
+    <ul>
+      <li>✅ Sigue descontando saldo real de la cuenta/banco donde lo cargaste.</li>
+      <li>❌ No se cuenta en el total de "Gastos" del mes ni afecta el % de ejecución del presupuesto.</li>
+      <li>Aparece aparte, en la tarjeta <b>🎁 Especiales (mes)</b> de Tenencias — tocándola ves el detalle de cada uno.</li>
+    </ul>
+    <div class="tip">💡 Se puede marcar/desmarcar en cualquier momento editando el rubro — no hace falta crear uno nuevo.</div>
     <h2>Límites por mes</h2>
     <p>El selector "Límites del mes" te permite definir un tope distinto para meses puntuales sin tener que cambiar el límite general del rubro.</p>
     <h2>Borrar un rubro (y que se borre también en tus otros dispositivos)</h2>
     <p>Al eliminar un rubro, la app anota el borrado en una <b>papelera interna</b>. La próxima vez que sincronice con Drive (automático o "Fusionar"), ese borrado viaja al otro dispositivo y también desaparece ahí — no hace falta borrarlo a mano en cada lado.</p>
+    <div class="tip">💡 Si volvés a crear un rubro con el mismo nombre después de haberlo borrado, queda a salvo: la app compara fechas y no lo vuelve a borrar en el próximo sync, aunque la papelera todavía tenga ese nombre anotado.</div>
     <div class="info">ℹ️ Los rubros se identifican por <b>nombre</b> al sincronizar entre dispositivos (no por id interno, que es local a cada uno). Si creás un rubro nuevo en un dispositivo, en el otro aparece solo tras el próximo sync — y si lo borrás, también se borra solo.</div>
   </section>
 
@@ -520,6 +533,30 @@
       </div>
     </div>
     <p>Filtrá por <b>tipo</b> de movimiento, <b>rubro</b> y <b>moneda</b> para revisar cualquier mes anterior. El botón <b>📊 Exportar Excel</b> descarga el detalle completo del historial a una planilla, incluyendo la columna Moneda.</p>
+  </section>
+
+  <!-- SANTANDER -->
+  <section class="section" id="santander">
+    <div class="section-header">
+      <span class="section-icon">🏦</span>
+      <div>
+        <div class="section-title">Mails de Santander</div>
+        <div class="section-subtitle">Detección automática de compras con tarjeta de débito, vía Gmail</div>
+      </div>
+    </div>
+    <p>La app puede leer los mails de aviso de compra con tarjeta que manda Santander Uruguay ("Aviso: uso de tarjeta de débito") y armarte un gasto prellenado — solo confirmás el rubro y guardás.</p>
+    <h2>Cómo se usa</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num"></div><div class="step-body">Tocá el botón rojo <b>📧 Chequear mails</b> arriba a la derecha del header.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">La primera vez, Google va a pedir el consentimiento de lectura de Gmail — está fijado a la casilla <code>margonqui@gmail.com</code>, sin importar qué cuenta de Google tengas activa en el navegador para otra cosa.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Por cada mail nuevo encontrado se abre un modal con concepto, monto y fecha prellenados, cuenta preseleccionada en <b>Santander (debito1)</b> — elegís el rubro y tocás ✅ Guardar (o Descartar).</div></div>
+    </div>
+    <div class="tip">💡 En PC además hay un chequeo automático y silencioso a los pocos segundos de abrir la app. En el celular queda solo el botón manual.</div>
+    <h2>Qué mails reconoce</h2>
+    <p>Solo los de asunto <b>"uso de tarjeta"</b> desde <code>notificaciones@santander.com.uy</code> — compras con tarjeta de débito y retiros de cajero (el mail no distingue entre ambos, solo indica el establecimiento). Resúmenes, transferencias u otro tipo de aviso del banco no se procesan.</p>
+    <div class="warning">⚠️ Requiere la <b>Gmail API</b> habilitada en el proyecto de Google Cloud del Client ID que uses, y que la casilla <code>margonqui@gmail.com</code> esté agregada como <b>usuario de prueba</b> en la pantalla de consentimiento de OAuth (Google Cloud Console → Google Auth Platform → Público), mientras el proyecto no esté verificado/publicado.</div>
+    <h2>Si un mail no se reconoce</h2>
+    <p>Abrí la consola del navegador (F12) antes de tocar "Chequear mails": si algún mail no matchea el formato esperado, aparece un log <code>[gm-gmail] mail candidato NO matcheó el parser</code> con el texto completo — eso permite ajustar el reconocimiento si el banco cambia el formato del aviso.</p>
   </section>
 
   <!-- BACKUP -->
@@ -624,6 +661,39 @@ console.log(gmGToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v1.0</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li><b>Crítico:</b> editar un movimiento existente (gasto/ingreso/transferencia) creaba un registro nuevo además de actualizar el original, duplicando el asiento. Corregido — auditoría completa de código tras la seguidilla de parches de esta sesión.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.29 – v0.30</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Filtro del Libro diario: el texto va antes del ícono en cada opción, para poder tipear la primera letra y saltar directo (antes el emoji al inicio lo impedía)</li>
+        <li>Nueva tarjeta <b>🎁 Especiales (mes)</b> en Tenencias, tocable: abre el detalle de cada gasto especial del mes con fecha, rubro y monto</li>
+        <li>Se saca "Ingresos" de la cajita de arriba — el ingreso real ya se ve reflejado en el saldo del banco al cobrar</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.20 – v0.28</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Papelera de rubros: ahora compara fecha de creación contra fecha de borrado, para que un rubro recreado con el mismo nombre no se vuelva a borrar en el próximo sync</li>
+        <li>Fix visual: el checkbox "Rubro especial" no mostraba el tilde (una regla CSS global le sacaba el render nativo)</li>
+        <li>Fix: operaciones de Ahorro (guardar/eliminar) a veces no repintaban la pantalla hasta salir y volver a entrar — corregido diriendo el repintado al siguiente frame</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v0.21 – v0.25</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li><b>Nueva función:</b> detección automática de compras con tarjeta de débito Santander vía mails de Gmail — ver sección <a href="#santander">🏦 Mails de Santander</a></li>
+        <li>El token de Gmail quedó separado del de Drive, fijo a la casilla <code>margonqui@gmail.com</code> mediante el parámetro <code>hint</code> de Google — no depende de qué cuenta esté activa en el navegador para otras cosas</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
