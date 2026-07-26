@@ -867,7 +867,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.23';
+const APP_VERSION = '0.25';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1385,6 +1385,7 @@ async function gmGmailBuscarGastos(token) {
     if (data.error) {
         console.log('[gm-gmail] Error de la API de Gmail:', data.error);
         gastos.errorApi = data.error.message || JSON.stringify(data.error);
+        gastos.errorCode = data.error.code;
         gastos.candidatos = 0;
         return gastos;
     }
@@ -1482,16 +1483,73 @@ function gmGmailToast(msg, esError = false) {
     toast(msg, esError ? 'error' : 'success');
 }
 
-async function gmGmailChequear(manual = false) {
+const GM_GMAIL_SCOPE_ONLY = 'https://www.googleapis.com/auth/gmail.readonly';
+const GM_GMAIL_HINT       = 'margonqui@gmail.com';
+const GM_GTOKEN_GMAIL_KEY     = 'fm_gtoken_gmail';
+const GM_GTOKEN_GMAIL_EXP_KEY = 'fm_gtoken_gmail_exp';
+let gmGTokenGmail = null;
+function gmGTokenGmailGuardar(token, expiresIn) {
+    gmGTokenGmail = token;
+    const exp = Date.now() + (expiresIn * 1000);
+    try { localStorage.setItem(GM_GTOKEN_GMAIL_KEY, token); localStorage.setItem(GM_GTOKEN_GMAIL_EXP_KEY, String(exp)); } catch(e){}
+}
+function gmGTokenGmailCargarLocal() {
+    try {
+        const t = localStorage.getItem(GM_GTOKEN_GMAIL_KEY);
+        const exp = parseInt(localStorage.getItem(GM_GTOKEN_GMAIL_EXP_KEY)||'0');
+        if(t && exp && Date.now() < exp - 60000) { gmGTokenGmail = t; return true; }
+    } catch(e){}
+    return false;
+}
+function gmGTokenGmailLimpiar() {
+    gmGTokenGmail = null;
+    try { localStorage.removeItem(GM_GTOKEN_GMAIL_KEY); localStorage.removeItem(GM_GTOKEN_GMAIL_EXP_KEY); } catch(e){}
+}
+// Token de Gmail SEPARADO del de Drive: fijo a GM_GMAIL_HINT (margonqui@gmail.com),
+// no depende de qué cuenta esté activa en el navegador ni interfiere con Drive/otras apps.
+function gmGetTokenGmail(cb) {
+    if(gmGTokenGmailCargarLocal()) { cb(gmGTokenGmail); return; }
+    const clientId = gmGetClientId();
+    if(!clientId) { alert('Configurá el Client ID de Drive en la pestaña Cuentas.'); return; }
+    gmCargarGoogle(() => {
+        const client = google.accounts.oauth2.initTokenClient({
+            client_id: clientId, scope: GM_GMAIL_SCOPE_ONLY, hint: GM_GMAIL_HINT, prompt: '',
+            callback: resp => {
+                if(resp.error === 'interaction_required' || resp.error === 'user_logged_out') {
+                    const c2 = google.accounts.oauth2.initTokenClient({
+                        client_id: clientId, scope: GM_GMAIL_SCOPE_ONLY, hint: GM_GMAIL_HINT,
+                        callback: r2 => { if(r2.error){ if (cb.onError) cb.onError(r2.error); else alert('Error: '+r2.error); return;} gmGTokenGmailGuardar(r2.access_token, r2.expires_in); cb(gmGTokenGmail); }
+                    });
+                    c2.requestAccessToken(); return;
+                }
+                if(resp.error) { if (cb.onError) cb.onError(resp.error); else alert('Error Google: ' + resp.error); return; }
+                gmGTokenGmailGuardar(resp.access_token, resp.expires_in);
+                cb(gmGTokenGmail);
+            }
+        });
+        client.requestAccessToken({prompt:''});
+    });
+}
+
+async function gmGmailChequear(manual = false, _reintento = false) {
     if (document.getElementById('gm-gmail-overlay')) return; // no pisar la cola mientras hay un modal abierto
     if (gmEsMovil() && !manual) return; // en mobile, solo chequeo manual
-    if (manual) gmGmailToast('🔄 Revisando mails de Santander...');
+    if (manual && !_reintento) gmGmailToast('🔄 Revisando mails de Santander...');
     const clientId = gmGetClientId();
     if (!clientId) { if (manual) gmGmailToast('⚠️ Configurá el Client ID de Google en Cuentas primero.', true); return; }
-    gmGetToken(async token => {
+    gmGetTokenGmail(async token => {
         try {
             const gastos = await gmGmailBuscarGastos(token);
-            if (gastos.errorApi) { if (manual) gmGmailToast('❌ Gmail API: ' + gastos.errorApi, true); return; }
+            if (gastos.errorApi) {
+                if (gastos.errorCode === 401 && !_reintento) {
+                    console.log('[gm-gmail] Token inválido (401): limpiando y reintentando con uno nuevo...');
+                    gmGTokenGmailLimpiar();
+                    gmGmailChequear(manual, true);
+                    return;
+                }
+                if (manual) gmGmailToast('❌ Gmail API: ' + gastos.errorApi, true);
+                return;
+            }
             if (!gastos.length) {
                 if (manual) {
                     if (gastos.candidatos > 0) gmGmailToast(`⚠️ ${gastos.candidatos} mail(s) encontrado(s) pero ninguno matcheó el formato esperado. Mirá la consola (F12).`, true);
