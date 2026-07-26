@@ -701,7 +701,6 @@
             <div class="libro-hdr">
                 <span class="panel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;display:flex;align-items:center;">📊 Libro diario<span id="ayuda-libro-diario"></span></span>
                 <div style="display:flex; gap:4px; align-items:center;">
-                    <select id="filtro-avanzado" class="filter-select"></select>
                     <button class="btn-dark btn-sm" onclick="gmExportarLibroDiarioXLSX()" title="Exportar filtro actual a Excel">📊</button>
                     <button class="btn-dark btn-sm" onclick="ejecutarImpresionPWA()">🖨️</button>
                 </div>
@@ -709,7 +708,7 @@
             <hr class="divider">
 
             <div class="date-filter-strip">
-                <div class="date-filter-group" style="flex:1;min-width:120px;">
+                <div class="date-filter-group" style="flex:2;min-width:120px;">
                     <label>Buscar</label>
                     <input type="text" id="filtro-busqueda-texto" list="lista-notas-usadas" placeholder="Concepto o nota…" autocomplete="off">
                     <datalist id="lista-notas-usadas"></datalist>
@@ -721,6 +720,10 @@
                 <div class="date-filter-group">
                     <label>Hasta</label>
                     <input type="date" id="filtro-fecha-hasta">
+                </div>
+                <div class="date-filter-group" style="flex:1.5;">
+                    <label>Rubro/cuenta</label>
+                    <select id="filtro-avanzado" class="filter-select" style="width:100%;"></select>
                 </div>
                 <div>
                     <button class="btn-secondary btn-sm" onclick="limpiarFiltrosFecha()" title="Limpiar fechas y búsqueda">✕</button>
@@ -867,7 +870,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '1.0';
+const APP_VERSION = '1.0.1';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
