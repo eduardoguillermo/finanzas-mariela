@@ -597,7 +597,6 @@
     <div class="box-estado-financiero">
         <div class="dash-label">🎯 Mes actual</div>
         <div class="grid-dashboard">
-            <div class="card-bal"><h4>Ingresos</h4><p id="view-mes-ingresos" style="color:var(--ingreso)">$0,00</p></div>
             <div class="card-bal"><h4>Presupuesto</h4><p id="view-budget-presup" style="color:var(--primary)">$0,00</p></div>
             <div class="card-bal"><h4>Gastos</h4><p id="view-mes-gastos" style="color:var(--gasto)">$0,00</p></div>
             <div class="card-bal"><h4>Remanente</h4><p id="view-budget-general" style="color:var(--primary)">$0,00</p></div>
@@ -867,7 +866,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '0.25';
+const APP_VERSION = '0.26';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -3995,7 +3994,6 @@ function render() {
     const gastosEspecialesMes  = metricas.mapaMensual[claveMesActual]?.gastosEspeciales || 0;
     const ingresosMesActual    = metricas.mapaMensual[claveMesActual]?.ingresos         || 0;
     const restante             = presupTotal - gastosMesActual;
-    document.getElementById('view-mes-ingresos').textContent = fmtVista(ingresosMesActual);
     document.getElementById('view-mes-gastos').textContent   = fmtVista(gastosMesActual);
     if (vistaMoneda === 'USD') {
         document.getElementById('view-budget-presup').textContent = '—';
