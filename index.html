@@ -870,7 +870,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -927,10 +927,14 @@ function gmInsertarAyudas() {
 const GM_DRIVE_SCOPE     = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.readonly';
 const GM_GTOKEN_KEY      = 'fm_gtoken';
 const GM_GTOKEN_EXP_KEY  = 'fm_gtoken_exp';
+const GM_GTOKEN_EMAIL_KEY     = 'fm_gtoken_email';
 const GM_GTOKEN_SCOPE_KEY     = 'fm_gtoken_scope_v';
 const GM_GTOKEN_SCOPE_VERSION = '3'; // v3: + gmail.readonly para detección de mails Santander
 const GM_CLIENT_ID_KEY   = 'fm_drive_client_id';
 const GM_DRIVE_FOLDER    = 'FinanzasMariela';
+// El backup de Finanzas Mariela va SIEMPRE al Drive de Mariela — no se permite
+// conectar con ninguna otra cuenta de Google, ni siquiera silenciosamente.
+const GM_CUENTA_REQUERIDA = 'margonqui@gmail.com';
 let gmGToken = null;
 let gmDriveFileId = null;
 let _gmFolderId = null;
@@ -949,12 +953,13 @@ function gmActualizarBotonesDrive() {
     document.getElementById('btn-gm-drive-up').style.display   = tiene ? '' : 'none';
     document.getElementById('btn-gm-drive-down').style.display = tiene ? '' : 'none';
 }
-function gmGTokenGuardar(token, expiresIn) {
+function gmGTokenGuardar(token, expiresIn, email) {
     const exp = Date.now() + (expiresIn||3500)*1000;
     try {
         localStorage.setItem(GM_GTOKEN_KEY, token);
         localStorage.setItem(GM_GTOKEN_EXP_KEY, String(exp));
         localStorage.setItem(GM_GTOKEN_SCOPE_KEY, GM_GTOKEN_SCOPE_VERSION);
+        if(email) localStorage.setItem(GM_GTOKEN_EMAIL_KEY, email);
     } catch(e){}
     gmGToken = token;
 }
@@ -963,14 +968,28 @@ function gmGTokenCargarLocal() {
         const t = localStorage.getItem(GM_GTOKEN_KEY);
         const exp = parseInt(localStorage.getItem(GM_GTOKEN_EXP_KEY)||'0');
         const scopeV = localStorage.getItem(GM_GTOKEN_SCOPE_KEY);
-        // Token viejo (scope appDataFolder) no sirve para la carpeta visible: se descarta y se re-pide consentimiento
-        if(t && exp && Date.now() < exp - 60000 && scopeV === GM_GTOKEN_SCOPE_VERSION) { gmGToken = t; return true; }
+        const email = (localStorage.getItem(GM_GTOKEN_EMAIL_KEY)||'').toLowerCase();
+        // Token viejo (scope appDataFolder, o de otra cuenta que no sea la de Mariela) no sirve: se descarta y se re-pide consentimiento
+        if(t && exp && Date.now() < exp - 60000 && scopeV === GM_GTOKEN_SCOPE_VERSION && email === GM_CUENTA_REQUERIDA) { gmGToken = t; return true; }
     } catch(e){}
     return false;
 }
 function gmGTokenLimpiar() {
     gmGToken = null;
-    try { localStorage.removeItem(GM_GTOKEN_KEY); localStorage.removeItem(GM_GTOKEN_EXP_KEY); } catch(e){}
+    try { localStorage.removeItem(GM_GTOKEN_KEY); localStorage.removeItem(GM_GTOKEN_EXP_KEY); localStorage.removeItem(GM_GTOKEN_EMAIL_KEY); } catch(e){}
+}
+// Confirma con la Drive API a qué cuenta de Google pertenece el token recién
+// obtenido. Necesario porque `hint` solo sugiere la cuenta en el selector —
+// no impide que se elija otra — así que la app valida después de conectar.
+async function gmVerificarCuentaDrive(token) {
+    try {
+        const resp = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        if(!resp.ok) return null;
+        const data = await resp.json();
+        return (data.user && data.user.emailAddress) ? data.user.emailAddress.toLowerCase() : null;
+    } catch(e) { return null; }
 }
 function gmCargarGoogle(cb) {
     if(typeof google !== 'undefined') { cb(); return; }
@@ -980,26 +999,45 @@ function gmCargarGoogle(cb) {
     s.onerror = () => alert('No se pudo cargar Google. Verificá la conexión.');
     document.head.appendChild(s);
 }
-function gmGetToken(cb) {
+function gmGetToken(cb, interactivo) {
+    if(interactivo === undefined) interactivo = true;
     if(gmGTokenCargarLocal()) { cb(gmGToken); return; }
     const clientId = gmGetClientId();
-    if(!clientId) { alert('Configurá el Client ID de Drive en la pestaña Cuentas.'); return; }
+    if(!clientId) { if(interactivo) alert('Configurá el Client ID de Drive en la pestaña Cuentas.'); return; }
     gmCargarGoogle(() => {
         if(gmGToken) { cb(gmGToken); return; }
-        const client = google.accounts.oauth2.initTokenClient({
-            client_id: clientId, scope: GM_DRIVE_SCOPE, prompt: '',
-            callback: resp => {
-                if(resp.error === 'interaction_required' || resp.error === 'user_logged_out') {
-                    const c2 = google.accounts.oauth2.initTokenClient({
-                        client_id: clientId, scope: GM_DRIVE_SCOPE,
-                        callback: r2 => { if(r2.error){alert('Error: '+r2.error);return;} gmGTokenGuardar(r2.access_token, r2.expires_in); cb(gmGToken); }
-                    });
-                    c2.requestAccessToken(); return;
-                }
-                if(resp.error) { alert('Error Google: ' + resp.error); return; }
-                gmGTokenGuardar(resp.access_token, resp.expires_in);
-                cb(gmGToken);
+
+        function pedirConSelectorDeCuenta() {
+            const c2 = google.accounts.oauth2.initTokenClient({
+                client_id: clientId, scope: GM_DRIVE_SCOPE, hint: GM_CUENTA_REQUERIDA,
+                callback: r2 => procesarToken(r2, false)
+            });
+            c2.requestAccessToken({ prompt: 'select_account', hint: GM_CUENTA_REQUERIDA });
+        }
+
+        const procesarToken = async (resp, permitirReintento) => {
+            if(resp.error === 'interaction_required' || resp.error === 'user_logged_out') {
+                if(permitirReintento && interactivo) pedirConSelectorDeCuenta();
+                return;
             }
+            if(resp.error) { if(interactivo) alert('Error Google: ' + resp.error); return; }
+            // `hint` solo sugiere la cuenta en el selector, no impide elegir otra —
+            // así que se valida con la Drive API a qué cuenta pertenece el token.
+            const email = await gmVerificarCuentaDrive(resp.access_token);
+            if(email !== GM_CUENTA_REQUERIDA) {
+                fetch('https://oauth2.googleapis.com/revoke?token=' + resp.access_token, { method: 'POST' }).catch(()=>{});
+                gmGTokenLimpiar();
+                if(permitirReintento && interactivo) { pedirConSelectorDeCuenta(); return; }
+                if(interactivo) alert(`Finanzas Mariela solo se conecta al Drive de Mariela (${GM_CUENTA_REQUERIDA}). Elegí esa cuenta en el selector de Google.`);
+                return;
+            }
+            gmGTokenGuardar(resp.access_token, resp.expires_in, email);
+            cb(gmGToken);
+        };
+
+        const client = google.accounts.oauth2.initTokenClient({
+            client_id: clientId, scope: GM_DRIVE_SCOPE, prompt: '', hint: GM_CUENTA_REQUERIDA,
+            callback: resp => procesarToken(resp, true)
         });
         client.requestAccessToken({prompt:''});
     });
@@ -4525,7 +4563,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // Reconecta/renueva el token de Drive en silencio al abrir (sin popup, solo si
     // Drive ya está configurado), para que al tocar Salir el backup sea instantáneo.
-    if (!DEV_MODE && gmGetClientId()) { gmGetToken(function(){}); }
+    if (!DEV_MODE && gmGetClientId()) { gmGetToken(function(){}, false); }
 
     // Cargar datos
     let rawData = localStorage.getItem(SKEY);
