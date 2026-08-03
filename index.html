@@ -137,6 +137,9 @@
         }
         .card-bal h4 { margin: 0; font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .3px; font-weight: 800; }
         .card-bal p  { margin: 3px 0 0; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .card-bal.destacada { border: 1.5px solid var(--ingreso); box-shadow: 0 0 0 1px rgba(16,185,129,.15); }
+        .card-bal.destacada h4 { color: var(--ingreso); }
+        .card-bal.destacada p  { color: var(--ingreso); font-size: 13px; }
         .box-estado-financiero {
             border: 1.5px solid var(--primary); border-radius: 8px;
             padding: 8px 8px 2px; margin-bottom: 8px;
@@ -604,6 +607,7 @@
         <p id="view-gastos-especiales-nota" style="display:none; margin:2px 2px 6px; font-size:10px; color:var(--gasto);"></p>
         <div class="dash-label">💰 Tenencias</div>
         <div class="grid-dashboard">
+            <div class="card-bal destacada"><h4>💎 Disponible</h4><p id="view-disponible">$0,00</p></div>
             <div class="card-bal"><h4>Neto</h4><p id="view-balance">$0,00</p></div>
             <div class="card-bal"><h4>💵 Efectivo</h4><p id="view-bal-efectivo">$0,00</p></div>
             <div class="card-bal" id="grp-debito1"><h4 id="label-hdr-debito1">Banco 1</h4><p id="view-bal-debito1">$0,00</p></div>
@@ -870,7 +874,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.1.0';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -4035,7 +4039,14 @@ function calcularMetricas(moneda) {
         else if (m.tipo === 'retiro') saldos[m.origen] += m.monto;
     });
 
-    return { tIngresos, tGastos, tGastosEspeciales, saldos, mapaMensual };
+    // Total ahorrado en esta moneda (suma de saldos de todos los subrubros de Ahorro)
+    let totalAhorro = 0;
+    const saldosSubrubro = gmSaldosPorSubrubro();
+    (DB.ahorros.subrubros || []).forEach(s => {
+        if (gmMonedaSubrubro(s) === moneda) totalAhorro += (saldosSubrubro[s.id] || 0);
+    });
+
+    return { tIngresos, tGastos, tGastosEspeciales, saldos, mapaMensual, totalAhorro };
 }
 
 // ════════════════════════════════════════════════════
@@ -4048,8 +4059,12 @@ function render() {
     actualizarListaNotasUsadas();
 
     // ── Header: métricas ──
-    const balTotal = metricas.tIngresos - metricas.tGastos;
+    // Neto = suma real de las cuentas (Efectivo + Bancos), ya reflejan gastos especiales y ahorro.
+    const balTotal = metricas.saldos.efectivo + metricas.saldos.debito1 + metricas.saldos.debito2 + metricas.saldos.debito3;
     setValColor('view-balance',       fmtVista(balTotal),                balTotal >= 0);
+    // Disponible = Neto menos lo ya afectado a Ahorro en esta moneda.
+    const disponible = balTotal - (metricas.totalAhorro || 0);
+    setValColor('view-disponible',    fmtVista(disponible),              disponible >= 0);
     setValColor('view-bal-efectivo',  fmtVista(metricas.saldos.efectivo), metricas.saldos.efectivo >= 0);
     setValColor('view-bal-debito1',   fmtVista(metricas.saldos.debito1),  metricas.saldos.debito1 >= 0);
     setValColor('view-bal-debito2',   fmtVista(metricas.saldos.debito2),  metricas.saldos.debito2 >= 0);
