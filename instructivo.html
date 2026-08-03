@@ -245,7 +245,7 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <h1>💵 Finanzas Mariela</h1>
-    <p>Manual de usuario · v1.0.2</p>
+    <p>Manual de usuario · v1.1.0</p>
   </div>
 
   <div class="section-label">Introducción</div>
@@ -286,7 +286,7 @@
     <h1>💵 Finanzas Mariela</h1>
     <p>Manual completo de usuario — Registro diario de gastos e ingresos</p>
     <div class="hero-badges">
-      <span class="badge badge-green">✓ v1.0.2</span>
+      <span class="badge badge-green">✓ v1.1.0</span>
       <span class="badge badge-blue">✓ Sin servidor</span>
       <span class="badge badge-amber">✓ Datos locales</span>
       <span class="badge badge-purple">✓ Instancia aislada</span>
@@ -355,6 +355,7 @@
     <p>Arriba a la derecha, el ícono <b>☰</b> reemplaza al viejo pie de página: ahí están Ayuda, Exportar/Importar, Drive, Snapshots locales, Gastos por rubro, Historial mensual y Salir.</p>
     <div class="info">ℹ️ Todos los botones de ayuda (🟡 ?) que ves junto a los títulos te traen directo a la sección correspondiente de este manual.</div>
     <div class="note">📝 "Ingresos" ya no se muestra como cajita arriba (el ingreso real es lo que se acredita en el banco al cobrar — se ve reflejado en el saldo de la cuenta, no hace falta un total aparte). La tarjeta <b>🎁 Especiales (mes)</b> es tocable: abre el detalle de cada gasto especial del mes con su fecha, rubro y monto.</div>
+    <div class="note">💎 En <b>Tenencias</b>, <b>Neto</b> es la suma real de tus cuentas (Efectivo + Santander + Prex, o las que tengas configuradas). La tarjeta destacada <b>Disponible</b>, primera de la fila, es Neto menos el total que ya tenés guardado en Ahorro — o sea, la plata que de verdad podés usar sin tocar lo ahorrado. Ambas se calculan por separado para $U y USD, cada una con sus propias cuentas y ahorros en esa moneda.</div>
     <h2>Selector $U / USD</h2>
     <p>En el header hay un switch <b>$U / USD</b> que cambia la moneda de visualización de Ahorros y otros totales. No convierte montos: cada registro guarda su propia moneda, y el switch simplemente filtra/formatea la vista.</p>
   </section>
@@ -676,6 +677,14 @@ console.log(gmGToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v1.1.0</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li><b>Nueva tarjeta Disponible</b> en Tenencias (destacada, primera de la fila): Neto − Ahorro total en esa moneda, para $U y USD.</li>
+        <li><b>Fix:</b> Neto ya no se calcula como Ingresos − Gastos (fórmula que no restaba especiales ni ahorro y quedaba desalineada de la plata real). Ahora es directamente Efectivo + Santander + Prex, y siempre coincide con la suma real de las cuentas.</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
