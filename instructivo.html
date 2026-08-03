@@ -354,8 +354,28 @@
     </div>
     <p>Arriba a la derecha, el ícono <b>☰</b> reemplaza al viejo pie de página: ahí están Ayuda, Exportar/Importar, Drive, Snapshots locales, Gastos por rubro, Historial mensual y Salir.</p>
     <div class="info">ℹ️ Todos los botones de ayuda (🟡 ?) que ves junto a los títulos te traen directo a la sección correspondiente de este manual.</div>
-    <div class="note">📝 "Ingresos" ya no se muestra como cajita arriba (el ingreso real es lo que se acredita en el banco al cobrar — se ve reflejado en el saldo de la cuenta, no hace falta un total aparte). La tarjeta <b>🎁 Especiales (mes)</b> es tocable: abre el detalle de cada gasto especial del mes con su fecha, rubro y monto.</div>
-    <div class="note">💎 En <b>Tenencias</b>, <b>Neto</b> es la suma real de tus cuentas (Efectivo + Santander + Prex, o las que tengas configuradas). La tarjeta destacada <b>Disponible</b>, primera de la fila, es Neto menos el total que ya tenés guardado en Ahorro — o sea, la plata que de verdad podés usar sin tocar lo ahorrado. Ambas se calculan por separado para $U y USD, cada una con sus propias cuentas y ahorros en esa moneda.</div>
+    <h2>💰 Tenencias</h2>
+    <p>Debajo de Mes actual, la caja <b>Tenencias</b> muestra el estado real de tu plata: cuánto tenés disponible, dónde está y cuánto llevás en gastos especiales este mes.</p>
+    <div class="info">ℹ️ "Ingresos" no se muestra como cajita aparte (el ingreso real es lo que se acredita en el banco al cobrar — ya se ve reflejado en el saldo de la cuenta correspondiente).</div>
+    <div class="dashboard-grid">
+      <div class="dash-card" style="color:var(--ingreso);">
+        <h4>💎 Disponible</h4>
+        <div class="value" style="font-size:13px;">Tarjeta destacada, primera de la fila. Neto − total ahorrado en esa moneda. Es la plata que realmente podés gastar sin tocar lo que ya guardaste en Ahorro.</div>
+      </div>
+      <div class="dash-card" style="color:var(--primary);">
+        <h4>Neto</h4>
+        <div class="value" style="font-size:13px;">Suma real de tus cuentas: Efectivo + Santander + Prex (o las que tengas configuradas en Cuentas). Siempre coincide con la plata que efectivamente tenés en mano y en el banco.</div>
+      </div>
+      <div class="dash-card" style="color:var(--text-main);">
+        <h4>💵 Efectivo / Santander / Prex</h4>
+        <div class="value" style="font-size:13px;">Saldo acumulado de cada cuenta por separado: ingresos que entraron ahí, menos gastos (normales y especiales) pagados desde ahí, más/menos transferencias y movimientos de Ahorro.</div>
+      </div>
+      <div class="dash-card" style="color:var(--gasto);">
+        <h4>🎁 Especiales (mes)</h4>
+        <div class="value" style="font-size:13px;">Solo del mes en curso (a diferencia de las demás, que son acumulado histórico): suma de gastos marcados como "rubro especial". Tocable — abre el detalle de cada uno.</div>
+      </div>
+    </div>
+    <div class="note">💎 <b>Disponible</b> y <b>Neto</b> se calculan por separado para $U y USD, cada uno con sus propias cuentas y ahorros en esa moneda. Un ahorro en USD no resta del Disponible en $U, y viceversa.</div>
     <h2>Selector $U / USD</h2>
     <p>En el header hay un switch <b>$U / USD</b> que cambia la moneda de visualización de Ahorros y otros totales. No convierte montos: cada registro guarda su propia moneda, y el switch simplemente filtra/formatea la vista.</p>
   </section>
