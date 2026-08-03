@@ -245,7 +245,7 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <h1>💵 Finanzas Mariela</h1>
-    <p>Manual de usuario · v1.0</p>
+    <p>Manual de usuario · v1.0.2</p>
   </div>
 
   <div class="section-label">Introducción</div>
@@ -286,7 +286,7 @@
     <h1>💵 Finanzas Mariela</h1>
     <p>Manual completo de usuario — Registro diario de gastos e ingresos</p>
     <div class="hero-badges">
-      <span class="badge badge-green">✓ v1.0</span>
+      <span class="badge badge-green">✓ v1.0.2</span>
       <span class="badge badge-blue">✓ Sin servidor</span>
       <span class="badge badge-amber">✓ Datos locales</span>
       <span class="badge badge-purple">✓ Instancia aislada</span>
@@ -317,7 +317,22 @@
         <div class="section-subtitle">Cómo está organizada la pantalla</div>
       </div>
     </div>
-    <p>Arriba de todo, el <b>dashboard</b> muestra dos filas de cajitas: <b>Mes actual</b> (Presupuesto, Gastos, Restante) y <b>Tenencias</b> (Neto, Efectivo, cada cuenta configurada y 🎁 Especiales del mes).</p>
+    <p>Arriba de todo, el <b>dashboard</b> muestra dos filas de cajitas: <b>🎯 Mes actual</b> (Presupuesto, Gastos, Remanente) y <b>💰 Tenencias</b> (Neto, Efectivo, cada cuenta configurada y 🎁 Especiales del mes).</p>
+    <div class="dashboard-grid">
+      <div class="dash-card" style="color:var(--primary);">
+        <h4>Presupuesto</h4>
+        <div class="value" style="font-size:13px;">Suma de los <b>límites mensuales</b> configurados en los rubros de gasto (los que no son "especial"), para el mes en curso. Se define rubro por rubro en Configuración → Rubros.</div>
+      </div>
+      <div class="dash-card" style="color:var(--gasto);">
+        <h4>Gastos</h4>
+        <div class="value" style="font-size:13px;">Total realmente gastado este mes en rubros normales (no especiales). Los gastos marcados como "especial" quedan afuera de este total — se ven aparte en 🎁 Especiales (mes).</div>
+      </div>
+      <div class="dash-card" style="color:var(--primary);">
+        <h4>Remanente</h4>
+        <div class="value" style="font-size:13px;">Presupuesto − Gastos. En verde si todavía te queda margen, en rojo si te pasaste del presupuesto del mes.</div>
+      </div>
+    </div>
+    <div class="note">📝 Estas tres cajitas solo se calculan en la vista <b>$U</b> (los límites de rubro se definen en pesos). Si cambiás el switch a <b>USD</b>, las tres muestran "—" porque la comparación contra presupuesto no aplica en esa moneda. Un rubro sin límite cargado simplemente no suma al Presupuesto.</div>
     <p>Debajo, <b>4 pestañas de nivel principal</b> reemplazan al viejo panel izquierdo con tabs:</p>
     <div class="dashboard-grid">
       <div class="dash-card" style="color:var(--primary);">
@@ -661,6 +676,20 @@ console.log(gmGToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v1.0.2</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Drive restringido a la cuenta de Mariela (<code>margonqui@gmail.com</code>) — evita sincronizar por error con otra cuenta de Google.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v1.0.1</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>El filtro de rubro/cuenta del Libro diario se movió a la misma línea que Buscar / Desde / Hasta, para un filtrado más compacto.</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
