@@ -874,7 +874,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 const DEV_MODE = false; // gastos_m (prod): Drive habilitado
 
 function gmNuevoUUID() {
@@ -1479,7 +1479,7 @@ function gmGmailMostrarSiguiente() {
 
 function gmAbrirModalGmail(datos) {
     document.getElementById('gm-gmail-overlay')?.remove();
-    const rubrosOpts = DB.rubros.filter(r => !r.especial).map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    const rubrosOpts = DB.rubros.filter(r => r.tipo === 'gasto').map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
     const ov = document.createElement('div');
     ov.id = 'gm-gmail-overlay';
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
